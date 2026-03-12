@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Master User Helper Function
+    function isMaster() {
+      return request.auth.token.email == 'tecnomania73@gmail.com';
+    }
+
+    // Default: Deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Daily Content (English Widget, Mantras, etc) - Reading allowed for everyone
+    match /daily_content/{document=**} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if isMaster(); 
+    }
+
+    // Users Collection
+    // Users Collection
+    match /users/{userId} {
+      // MASTER ADMIN: Full Access
+      allow read, write: if isMaster();
+      
+      // REGULAR USERS:
+      // - Read: Own doc
+      // - Create: Own doc (Registration)
+      // - Update: Own doc
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+
+      // Subcollections (Weekly, Network, Stats, etc.)
+      match /{subcollection}/{document=**} {
+        allow read, write: if request.auth.uid == userId || isMaster();
+      }
+    }
+  }
+}

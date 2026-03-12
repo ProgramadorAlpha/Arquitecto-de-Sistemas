@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --blue-glow: rgba(59, 130, 246, 0.5);
+  --purple-glow: rgba(168, 85, 247, 0.5);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  @apply bg-slate-50 dark:bg-[#0f172a] text-slate-900 dark:text-white;
+}
+
+@layer base {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), 
+  textarea, 
+  select {
+    @apply text-slate-900 dark:text-white bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 placeholder:text-slate-400 dark:placeholder:text-slate-500;
+  }
+}
+
+/* Custom animations or global utility classes from vanilla can go here */
+@layer components {
+  .premium-card {
+    @apply bg-white dark:bg-slate-800 rounded-[2.5rem] border border-slate-100 dark:border-slate-700/50 shadow-sm p-6;
+  }
+}
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Energy slider custom styles */
+.energy-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  border-radius: 9999px;
+}
+.energy-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(19, 109, 236, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 3px solid #136dec;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.energy-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 16px rgba(19, 109, 236, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.energy-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(19, 109, 236, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 3px solid #136dec;
+}
+.energy-slider::-moz-range-track {
+  background: transparent;
+  border: none;
+}

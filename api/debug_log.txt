@@ -1,0 +1,327 @@
+2025-12-26 23:42:40 - --- Request Started ---
+2025-12-26 23:42:40 - Session ID: 28770i2eqq3q4fipoq0mqgi970
+2025-12-26 23:42:40 - User ID: 2
+2025-12-26 23:42:40 - Prompt length: 133
+2025-12-26 23:42:40 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2025-12-26 23:42:40 - Executing Curl...
+2025-12-26 23:42:48 - Curl finished. HTTP Code: 200. Curl Error: []
+2025-12-26 23:42:48 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "¡Entendido! Dada la alta prioridad de \"Test AI 2.5\", aquí tienes 3 sub-tareas concretas y de ejecución inmediata para comenzar, bajo una perspectiva de Project Manager:\n\n```html\n\u003cul\u003e\n    \u003cli\u003e\n        \u003cstrong\u003e1. Definir Casos de Prueba y Criterios de Éxito:\u003c/strong\u003e Identificar y documentar los escenarios específicos que deben ser probados en AI 2.5 
+2025-12-26 23:42:48 - Success. Text length: 1466
+2025-12-26 23:42:48 - --- Request Started ---
+2025-12-26 23:42:48 - Session ID: 28770i2eqq3q4fipoq0mqgi970
+2025-12-26 23:42:48 - User ID: 2
+2025-12-26 23:42:48 - Prompt length: 133
+2025-12-26 23:42:48 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2025-12-26 23:42:48 - Executing Curl...
+2025-12-26 23:42:57 - Curl finished. HTTP Code: 200. Curl Error: []
+2025-12-26 23:42:57 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "¡Entendido! Como tu Project Manager, la prioridad \"Test AI 2.5\" es clave y merece nuestra atención inmediata. Aquí tienes 3 subtareas concretas y accionables para que podamos empezar a desglosar este gran objetivo:\n\n\u003cul\u003e\n    \u003cli\u003e\n        \u003cb\u003e1. Definir los Casos de Prueba Detallados y Criterios de Aceptación:\u003c/b\u003e\n        Establecer específicamente qu
+2025-12-26 23:42:57 - Success. Text length: 1549
+2025-12-26 23:43:09 - --- Request Started ---
+2025-12-26 23:43:09 - Session ID: 28770i2eqq3q4fipoq0mqgi970
+2025-12-26 23:43:09 - User ID: 2
+2025-12-26 23:43:09 - Prompt length: 88
+2025-12-26 23:43:09 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2025-12-26 23:43:09 - Executing Curl...
+2025-12-26 23:43:19 - Curl finished. HTTP Code: 200. Curl Error: []
+2025-12-26 23:43:19 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "¡Claro! Aquí tienes algunas ideas **cortas y divertidas** para tu hijo de 21 años:\n\n1.  **\"¿Cuál es el meme que más te hizo reír últimamente?\"**\n    *   *Por qué:* Es actual, conecta con su mundo digital y te abre la puerta a que te muestre algo (y quizás te enseñe algo de humor millennial/Gen Z).\n\n2.  **\"Si tuvieras un superpoder totalmente inútil, ¿cuál sería y para qué lo u
+2025-12-26 23:43:19 - Success. Text length: 1177
+2025-12-26 23:43:19 - --- Request Started ---
+2025-12-26 23:43:19 - Session ID: 28770i2eqq3q4fipoq0mqgi970
+2025-12-26 23:43:19 - User ID: 2
+2025-12-26 23:43:19 - Prompt length: 88
+2025-12-26 23:43:19 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2025-12-26 23:43:19 - Executing Curl...
+2025-12-26 23:43:30 - Curl finished. HTTP Code: 200. Curl Error: []
+2025-12-26 23:43:30 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "¡Claro! Aquí tienes algunas opciones cortas y divertidas para hablar con tu hijo de 21 años:\n\n1.  **El Dilema de la Serie/Película:**\n    *   **Frase:** \"Si pudieras vivir dentro de *cualquier* serie o película (¡pero solo por un día!), ¿cuál elegirías y por qué?\"\n    *   **Por qué funciona:** Abre la puerta a sus gustos actuales en entretenimiento, fantasías, y suele generar respu
+2025-12-26 23:43:30 - Success. Text length: 1343
+2025-12-26 23:43:41 - --- Request Started ---
+2025-12-26 23:43:41 - Session ID: 28770i2eqq3q4fipoq0mqgi970
+2025-12-26 23:43:41 - User ID: 2
+2025-12-26 23:43:41 - Prompt length: 84
+2025-12-26 23:43:41 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2025-12-26 23:43:41 - Executing Curl...
+2025-12-26 23:43:50 - Curl finished. HTTP Code: 200. Curl Error: []
+2025-12-26 23:43:50 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "¡Claro! Aquí tienes algunas opciones cortas y divertidas para iniciar una conversación con tu primo:\n\n1.  **\"Si tuvieras que elegir un superpoder totalmente inútil, ¿cuál sería y para qué lo usarías?\"**\n    *   *Por ejemplo:* \"Poder saber qué piensa mi perro en cada momento, pero solo en sueños.\"\n\n2.  **\"¿Cuál es la anécdota familiar más rara o graciosa que recuerdas de nuest
+2025-12-26 23:43:50 - Success. Text length: 883
+2025-12-27 10:10:10 - --- Request Started ---
+2025-12-27 10:10:10 - Session ID: 7da1l9suh9brb1pq9ek106v00a
+2025-12-27 10:10:11 - User ID: 2
+2025-12-27 10:10:11 - Method not allowed: GET
+2025-12-27 13:05:04 - --- Request Started ---
+2025-12-27 13:05:04 - Session ID: 7da1l9suh9brb1pq9ek106v00a
+2025-12-27 13:05:04 - User ID: 4
+2025-12-27 13:05:04 - Prompt length: 99
+2025-12-27 13:05:04 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2025-12-27 13:05:04 - Executing Curl...
+2025-12-27 13:05:11 - Curl finished. HTTP Code: 200. Curl Error: []
+2025-12-27 13:05:11 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "¡Claro! Aquí tienes algunas opciones, mezclando la sabiduría estoica con el enfoque de alto rendimiento, perfectas para empezar el día:\n\n**Opción 1 (Más estoica):**\n*   **\"Controla tu respuesta, no la situación.\"**\n    *(Enfocada en tu poder sobre tu actitud y decisiones, clave para el estoicismo y el rendimiento.)*\n\n**Opción 2 (Más rendimiento):**\n*   **\"Hoy, tu enfoque y esfuerzo
+2025-12-27 13:05:11 - Success. Text length: 906
+2025-12-27 13:10:06 - --- Request Started ---
+2025-12-27 13:10:06 - Session ID: 7da1l9suh9brb1pq9ek106v00a
+2025-12-27 13:10:06 - User ID: 2
+2025-12-27 13:10:06 - Prompt length: 99
+2025-12-27 13:10:06 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2025-12-27 13:10:06 - Executing Curl...
+2025-12-27 13:10:14 - Curl finished. HTTP Code: 200. Curl Error: []
+2025-12-27 13:10:14 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "¡Claro! Aquí tienes algunas opciones cortas y potentes, que mezclan estoicismo y alto rendimiento, para empezar tu día:\n\n**Más estoicas:**\n\n1.  **\"Hoy elijo mi respuesta y mi acción.\"** (Énfasis en el control interno y la agencia).\n2.  **\"Concéntrate en lo que puedes controlar y actúa con virtud.\"** (Clásico estoicismo, enfocado en el esfuerzo).\n3.  **\"El obstáculo no me detiene,
+2025-12-27 13:10:14 - Success. Text length: 910
+2025-12-27 13:12:49 - --- Request Started ---
+2025-12-27 13:12:49 - Session ID: 7da1l9suh9brb1pq9ek106v00a
+2025-12-27 13:12:49 - User ID: 2
+2025-12-27 13:12:49 - Prompt length: 99
+2025-12-27 13:12:49 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2025-12-27 13:12:49 - Executing Curl...
+2025-12-27 13:12:57 - Curl finished. HTTP Code: 200. Curl Error: []
+2025-12-27 13:12:57 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "¡Claro! Aquí tienes algunas opciones, mezclando reflexión estoica y enfoque en alto rendimiento, para empezar tu día con claridad y propósito:\n\n**Orientadas al Estoicismo:**\n\n1.  \"**Controla lo que puedes, acepta lo demás.**\"\n2.  \"**Hoy, elige tu respuesta, no tu reacción.**\"\n3.  \"**Tu mente es tu fortaleza. Cultívala.**\"\n4.  \"**El obstáculo es el camino.**\"\n\n**Orientadas al
+2025-12-27 13:12:57 - Success. Text length: 680
+2025-12-27 13:12:57 - --- Request Started ---
+2025-12-27 13:12:57 - Session ID: 7da1l9suh9brb1pq9ek106v00a
+2025-12-27 13:12:57 - User ID: 2
+2025-12-27 13:12:57 - Prompt length: 99
+2025-12-27 13:12:57 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2025-12-27 13:12:57 - Executing Curl...
+2025-12-27 13:13:08 - Curl finished. HTTP Code: 200. Curl Error: []
+2025-12-27 13:13:08 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Aquí tienes algunas opciones cortas y potentes para iniciar tu día:\n\n**Opción 1 (Más estoica):**\n\u003e **\"Enfócate en lo que controlas; actúa con virtud.\"**\n\u003e *(Recuerda que tu poder está en tu respuesta y tus acciones.)*\n\n**Opción 2 (Más de alto rendimiento):**\n\u003e **\"Hoy, elige la acción deliberada y el enfoque inquebrantable.\"**\n\u003e *(Te impulsa a ser proactivo y 
+2025-12-27 13:13:08 - Success. Text length: 645
+2025-12-27 14:06:54 - --- Request Started ---
+2025-12-27 14:06:54 - Session ID: 7da1l9suh9brb1pq9ek106v00a
+2025-12-27 14:06:54 - User ID: 2
+2025-12-27 14:06:54 - Prompt length: 85
+2025-12-27 14:06:54 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2025-12-27 14:06:54 - Executing Curl...
+2025-12-27 14:07:01 - Curl finished. HTTP Code: 200. Curl Error: []
+2025-12-27 14:07:01 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "¡Claro! Aquí tienes algunas opciones cortas y divertidas para hablar con tu esposa:\n\n1.  **\"Si tuviéramos que elegir un superpoder totalmente inútil, ¿cuál sería el tuyo y por qué me ganarías en ser más ridículo?\"**\n    *(Fomenta la creatividad tonta y el juego de quién es más \"inútil\".)*\n\n2.  **\"Si nuestra mascota (o un objeto de la casa, como el sofá) pudiera hablar por un 
+2025-12-27 14:07:01 - Success. Text length: 1050
+2026-01-11 13:52:59 - --- Request Started ---
+2026-01-11 13:52:59 - Session ID: q8l8c124ntjlh3e6od8ck31po5
+2026-01-11 13:52:59 - User ID: 2
+2026-01-11 13:52:59 - Prompt length: 88
+2026-01-11 13:52:59 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2026-01-11 13:52:59 - Executing Curl...
+2026-01-11 13:53:09 - Curl finished. HTTP Code: 200. Curl Error: []
+2026-01-11 13:53:09 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "¡Claro! Aquí tienes algunas opciones cortas y divertidas para hablar con tu hijo de 21 años:\n\n1.  **\"¿Cuál es el meme del momento que más te hace reír?\"**\n    *   **Por qué funciona:** Es actual, ligero, y casi garantiza una risa o un \"mira este\" en el móvil.\n\n2.  **\"Si pudieras diseñar tu propio sabor de helado, ¿qué locura le pondrías?\"**\n    *   **Por qué funciona:** Es c
+2026-01-11 13:53:09 - Success. Text length: 1332
+2026-01-11 13:53:09 - --- Request Started ---
+2026-01-11 13:53:09 - Session ID: q8l8c124ntjlh3e6od8ck31po5
+2026-01-11 13:53:09 - User ID: 2
+2026-01-11 13:53:09 - Prompt length: 88
+2026-01-11 13:53:09 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2026-01-11 13:53:09 - Executing Curl...
+2026-01-11 13:53:18 - Curl finished. HTTP Code: 200. Curl Error: []
+2026-01-11 13:53:18 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Aquí tienes un par de opciones cortas y divertidas para hablar con tu hijo de 21 años:\n\n1.  **\"¿Qué superpoder elegirías y para qué tontería lo usarías primero?\"**\n    *   (Corto, dispara la imaginación y casi siempre lleva a una respuesta graciosa o inesperada.)\n\n2.  **\"¿Cuál es el meme más gracioso que has visto últimamente o el que te hace reír sin falta?\"**\n    *   (Muy ac
+2026-01-11 13:53:18 - Success. Text length: 767
+2026-01-11 13:53:55 - --- Request Started ---
+2026-01-11 13:53:55 - Session ID: q8l8c124ntjlh3e6od8ck31po5
+2026-01-11 13:53:55 - User ID: 2
+2026-01-11 13:53:55 - Prompt length: 88
+2026-01-11 13:53:55 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2026-01-11 13:53:55 - Executing Curl...
+2026-01-11 13:54:03 - Curl finished. HTTP Code: 200. Curl Error: []
+2026-01-11 13:54:03 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "¡Claro! Aquí tienes algunas opciones cortas y divertidas para hablar con tu hijo de 21:\n\n1.  **\"Si pudieras tener un superpoder, pero solo para cosas *ridículamente* cotidianas, ¿cuál elegirías y por qué?\"**\n    *   (Ejemplo: \"Poder teletransportarme solo a la cocina\", \"Poder saber siempre dónde dejé las llaves\").\n\n2.  **\"¿Cuál es el meme/TikTok que más te ha hecho reír esta 
+2026-01-11 13:54:03 - Success. Text length: 1278
+2026-01-11 13:54:04 - --- Request Started ---
+2026-01-11 13:54:04 - Session ID: q8l8c124ntjlh3e6od8ck31po5
+2026-01-11 13:54:04 - User ID: 2
+2026-01-11 13:54:04 - Prompt length: 88
+2026-01-11 13:54:04 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2026-01-11 13:54:04 - Executing Curl...
+2026-01-11 13:54:13 - Curl finished. HTTP Code: 200. Curl Error: []
+2026-01-11 13:54:13 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "¡Claro! Aquí tienes algunas opciones cortas y divertidas para hablar con tu hijo de 21 años:\n\n1.  **\"Si tu vida fuera una serie de Netflix, ¿qué género sería y cómo se llamaría el primer episodio?\"**\n    *   *Por qué funciona:* Es creativo, le permite pensar en sí mismo de una forma divertida y puede llevar a anécdotas o aspiraciones.\n\n2.  **\"Cuál es la combinación de comida má
+2026-01-11 13:54:13 - Success. Text length: 1472
+2026-01-11 16:18:23 - --- Request Started ---
+2026-01-11 16:18:23 - Session ID: q8l8c124ntjlh3e6od8ck31po5
+2026-01-11 16:18:23 - User ID: 2
+2026-01-11 16:18:23 - Prompt length: 200
+2026-01-11 16:18:23 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2026-01-11 16:18:23 - Executing Curl...
+2026-01-11 16:18:31 - Curl finished. HTTP Code: 200. Curl Error: []
+2026-01-11 16:18:31 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "```json\n{\n  \"consejo\": \"Ofrece un café, té o un snack. Siéntense juntos un momento, aunque sea en silencio o con una charla muy ligera. Es un gesto de conexión sin presión.\",\n  \"tema\": \"¿Has descubierto alguna canción, serie, película o video de YouTube últimamente que te haya enganchado o te haya parecido interesante?\"\n}\n```"
+          }
+        ],
+        "role": "model"
+     
+2026-01-11 16:18:31 - Success. Text length: 336
+2026-01-11 16:18:33 - --- Request Started ---
+2026-01-11 16:18:33 - Session ID: q8l8c124ntjlh3e6od8ck31po5
+2026-01-11 16:18:33 - User ID: 2
+2026-01-11 16:18:33 - Prompt length: 199
+2026-01-11 16:18:33 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2026-01-11 16:18:33 - Executing Curl...
+2026-01-11 16:18:40 - Curl finished. HTTP Code: 200. Curl Error: []
+2026-01-11 16:18:40 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "```json\n{\n  \"consejo\": \"Mándale un meme o un video divertido que le saque una sonrisa. Es un detalle sin presión.\",\n  \"tema\": \"¿Alguna serie/película que te tenga enganchado últimamente, o un libro que te haya gustado?\"\n}\n```"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount":
+2026-01-11 16:18:40 - Success. Text length: 230
+2026-01-11 16:18:40 - --- Request Started ---
+2026-01-11 16:18:40 - Session ID: q8l8c124ntjlh3e6od8ck31po5
+2026-01-11 16:18:40 - User ID: 2
+2026-01-11 16:18:40 - Prompt length: 200
+2026-01-11 16:18:40 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2026-01-11 16:18:40 - Executing Curl...
+2026-01-11 16:18:48 - Curl finished. HTTP Code: 200. Curl Error: []
+2026-01-11 16:18:48 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "```json\n{\n  \"consejo\": \"Hoy, enfócate en escuchar más de lo que hablas, sin juicios ni intentar arreglar nada.\",\n  \"tema\": \"¿Qué película o serie te ha enganchado últimamente, o qué música nueva has descubierto?\"\n}\n```"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 55,
+2026-01-11 16:18:48 - Success. Text length: 226
+2026-01-11 16:18:48 - --- Request Started ---
+2026-01-11 16:18:48 - Session ID: q8l8c124ntjlh3e6od8ck31po5
+2026-01-11 16:18:48 - User ID: 2
+2026-01-11 16:18:48 - Prompt length: 200
+2026-01-11 16:18:48 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2026-01-11 16:18:48 - Executing Curl...
+2026-01-11 16:18:55 - Curl finished. HTTP Code: 200. Curl Error: []
+2026-01-11 16:18:55 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "```json\n{\n  \"consejo\": \"Invítale a hacer algo sencillo y relajante *juntos*, sin expectativas (ej. tomar un café, pasear un rato, ver un capítulo de algo).\",\n  \"tema\": \"Pregúntale sobre algún lugar al que le gustaría viajar en el futuro y por qué.\"\n}\n```"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetad
+2026-01-11 16:18:55 - Success. Text length: 261
+2026-01-11 16:19:17 - --- Request Started ---
+2026-01-11 16:19:17 - Session ID: q8l8c124ntjlh3e6od8ck31po5
+2026-01-11 16:19:17 - User ID: 2
+2026-01-11 16:19:17 - Prompt length: 200
+2026-01-11 16:19:17 - Target URL (safe): https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=HIDDEN_KEY
+2026-01-11 16:19:17 - Executing Curl...
+2026-01-11 16:19:27 - Curl finished. HTTP Code: 200. Curl Error: []
+2026-01-11 16:19:27 - Response Body Snippet: {
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "```json\n{\n  \"consejo\": \"Ofrece compartir un café/snack y dile algo específico que valores de él, sin esperar una gran conversación. El objetivo es el gesto de aprecio y conexión.\",\n  \"tema\": \"Si tuvieras un billete de avión gratis ahora mismo, ¿a dónde irías y por qué? (Puedes compartir también el tuyo).\"\n}\n```"
+          }
+        ],
+        "role": "model"
+      },
+      "fi
+2026-01-11 16:19:27 - Success. Text length: 323

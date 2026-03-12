@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arquitecto de Sistemas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+  <!-- ERROR DEBUGGER -->
+  <script>
+    window.onerror = function (msg, url, lineNo, columnNo, error) {
+      // Filter out Extension errors (MetaMask, etc.)
+      const ignorePatterns = [
+        'MetaMask',
+        'ethereum',
+        'extension://',
+        'moz-extension://',
+        'chrome-extension://',
+        'Receiving end does not exist'
+      ];
+
+      const stringMsg = String(msg || '');
+      const stringUrl = String(url || '');
+
+      if (ignorePatterns.some(pattern => stringMsg.includes(pattern) || stringUrl.includes(pattern))) {
+        // Silently log to console but do not alert user
+        console.warn("Ignored Extension Error:", msg);
+        return false;
+      }
+
+      console.error(msg, url, lineNo);
+      if (window.app && app.toast) {
+        app.toast("Error: " + msg, "error");
+      } else {
+        console.log("Error before app init:", msg);
+      }
+      return false;
+    };
+
+    window.addEventListener("unhandledrejection", function (event) {
+      // Filter out Extension errors in Promises
+      const reason = String(event.reason || '');
+      if (reason.includes('MetaMask') || reason.includes('ethereum') || reason.includes('Extension')) {
+        console.warn("Ignored Extension Promise Error:", reason);
+        event.preventDefault(); // Prevent console noise if desired
+        return;
+      }
+
+      console.error("Promesa Fallida:", event.reason);
+      if (window.app && app.toast) {
+        app.toast("Error: " + reason, "error");
+      }
+    });
+  </script>
+
+  <style>
+    /* Scrollbar visible para tabs en móvil */
+    #tab-container {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    }
+
+    #tab-container::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    #tab-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #tab-container::-webkit-scrollbar-thumb {
+      background-color: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    input:focus::placeholder,
+    textarea:focus::placeholder {
+      color: transparent;
+      opacity: 0;
+    }
+
+    /* Loading overlay */
+    .app-loading {
+      position: fixed;
+      inset: 0;
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .app-loading.hidden {
+      display: none;
+    }
+
+    /* ========================================
+       TEMA OSCURO - DARK MODE
+       ======================================== */
+
+    /* Variables de color para tema oscuro */
+    :root {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f1f5f9;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --border-color: #e2e8f0;
+    }
+
+    .dark {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+      --border-color: #334155;
+    }
+
+    /* Transición suave para cambio de tema */
+    body,
+    .bg-white,
+    .bg-slate-50,
+    .bg-slate-100,
+    input,
+    textarea,
+    select,
+    button {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    /* Aplicar tema oscuro a elementos principales */
+    .dark body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+    }
+
+    .dark .bg-white {
+      background-color: var(--bg-secondary) !important;
+    }
+
+    .dark .bg-slate-50 {
+      background-color: var(--bg-primary) !important;
+    }
+
+    .dark .bg-slate-100 {
+      background-color: var(--bg-tertiary) !important;
+    }
+
+    .dark .text-slate-800,
+    .dark .text-slate-900 {
+      color: var(--text-primary) !important;
+    }
+
+    .dark .text-slate-600,
+    .dark .text-slate-700 {
+      color: var(--text-secondary) !important;
+    }
+
+    .dark .text-slate-400,
+    .dark .text-slate-500 {
+      color: var(--text-muted) !important;
+    }
+
+    .dark .border-slate-100,
+    .dark .border-slate-200 {
+      border-color: var(--border-color) !important;
+    }
+
+    /* Inputs y textareas en modo oscuro */
+    .dark input,
+    .dark textarea,
+    .dark select {
+      background-color: var(--bg-tertiary) !important;
+      color: var(--text-primary) !important;
+      border-color: var(--border-color) !important;
+    }
+
+    .dark input::placeholder,
+    .dark textarea::placeholder {
+      color: var(--text-muted) !important;
+    }
+
+    /* Cards y contenedores */
+    .dark .shadow-sm {
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important;
+    }
+
+    /* Modales */
+    .dark #wizard-modal>div>div,
+    .dark #add-network-modal>div,
+    .dark #manifesto-modal>div,
+    .dark #recover-modal>div {
+      background-color: var(--bg-secondary) !important;
+    }
+
+    /* Login overlay */
+    .dark #login-overlay>div>div {
+      background-color: var(--bg-secondary) !important;
+    }
+
+    /* Botón de toggle tema */
+    .theme-toggle {
+      position: relative;
+      width: 56px;
+      height: 28px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle-circle {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dark .theme-toggle-circle {
+      transform: translateX(28px);
+    }
+
+    /* Iconos del toggle de tema */
+    .dark-hidden {
+      display: block;
+    }
+
+    .dark-visible {
+      display: none;
+    }
+
+    .dark .dark-hidden {
+      display: none;
+    }
+
+    .dark .dark-visible {
+      display: block;
+    }
+
+    /* TOAST NOTIFICATIONS */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: white;
+      color: #1e293b;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      border-left: 4px solid #3b82f6;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 300px;
+      max-width: 400px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(100%);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      pointer-events: auto;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .toast-success {
+      border-color: #22c55e;
+    }
+
+    .toast-error {
+      border-color: #ef4444;
+    }
+
+    .toast-warning {
+      border-color: #f59e0b;
+    }
+
+    .toast-info {
+      border-color: #3b82f6;
+    }
+
+    .dark .toast {
+      background: #1e293b;
+      color: #f1f5f9;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-slate-50 font-sans text-slate-800 pb-20">
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- LOADING SCREEN -->
+  <div id="app-loading" class="app-loading">
+    <div class="text-center">
+      <i data-lucide="loader-2" class="w-12 h-12 text-blue-400 animate-spin mx-auto mb-4"></i>
+      <p class="text-slate-400">Cargando sistema...</p>
+    </div>
+  </div>
+
+  <!-- GENERIC MODAL -->
+  <div id="generic-modal"
+    class="fixed inset-0 bg-slate-900/80 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl transform transition-all">
+      <h3 id="generic-modal-title" class="text-xl font-bold mb-4 text-slate-800">Título</h3>
+      <div id="generic-modal-content" class="text-slate-600 mb-6 max-h-[60vh] overflow-y-auto whitespace-pre-line">
+      </div>
+      <button onclick="document.getElementById('generic-modal').classList.add('hidden')"
+        class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition">
+        Entendido
+      </button>
+    </div>
+  </div>
+
+  <!-- LOGIN OVERLAY -->
+  <div id="login-overlay" class="fixed inset-0 bg-slate-900 z-[100] hidden">
+    <div class="min-h-screen flex items-center justify-center p-4">
+      <div class="bg-white p-8 rounded-3xl max-w-sm w-full">
+
+        <!-- Tab selector: Login / Register -->
+        <div class="flex gap-2 mb-6">
+          <button onclick="app.showLoginTab('login')" id="tab-login-btn"
+            class="flex-1 py-2 rounded-xl font-bold text-sm transition bg-slate-900 text-white">
+            Iniciar Sesión
+          </button>
+          <button onclick="app.showLoginTab('register')" id="tab-register-btn"
+            class="flex-1 py-2 rounded-xl font-bold text-sm transition bg-slate-100 text-slate-600 hover:bg-slate-200">
+            Registrarse
+          </button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form id="login-form" class="space-y-4">
+          <div id="auth-error" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-xl border border-red-100">
+            <span id="auth-error-text"></span>
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">
+              Correo Electrónico
+            </label>
+            <input type="email" id="login-email" required
+              class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="tu@email.com">
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">
+              Contraseña
+            </label>
+            <div class="relative">
+              <input type="password" id="login-password" required
+                class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-12"
+                placeholder="••••••••">
+              <button type="button" onclick="app.togglePasswordVisibility('login-password')"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <i data-lucide="eye" class="w-5 h-5"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" id="btn-login"
+            class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition flex items-center justify-center gap-2">
+            Ingresar
+          </button>
+
+          <button type="button" onclick="app.sendPasswordReset()" class="w-full text-sm text-blue-600 hover:underline">
+            ¿Olvidaste tu contraseña?
+          </button>
+        </form>
+
+        <!-- REGISTER FORM -->
+        <form id="register-form" class="space-y-4 hidden">
+          <div id="register-error" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-xl border border-red-100">
+            <span id="register-error-text"></span>
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">
+              Nombre Completo
+            </label>
+            <input type="text" id="register-name" required
+              class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Jose Luis González">
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">
+              Correo Electrónico
+            </label>
+            <input type="email" id="register-email" required
+              class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="tu@email.com">
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">
+              Contraseña (mínimo 6 caracteres)
+            </label>
+            <input type="password" id="register-password" required minlength="6"
+              class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="••••••••">
+          </div>
+
+          <button type="submit" id="btn-register"
+            class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition flex items-center justify-center gap-2">
+            Crear Cuenta
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div id="app-container" class="hidden">
+    <!-- HEADER -->
+    <!-- HEADER -->
+    <header class="bg-slate-900 text-white p-6 pb-12 rounded-b-[40px] shadow-2xl relative overflow-hidden mb-8">
+      <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+
+      <div class="relative z-10 max-w-4xl mx-auto">
+        <div class="flex justify-between items-start mb-6">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <i data-lucide="shield" class="text-blue-400 w-6 h-6"></i>
+              <h1 class="text-3xl font-bold tracking-tight">ARQUITECTO DE SISTEMAS</h1>
+            </div>
+            <p id="header-mantra-subtitle" class="text-slate-400 text-sm max-w-md italic border-l-2 border-blue-500 pl-3">
+              "Construyendo rutinas a prueba de fallos..."
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <!-- Indicador de Usuario con Avatar -->
+            <div class="hidden sm:flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/10">
+              <div class="relative">
+                <div id="user-avatar"
+                  class="w-9 h-9 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  A
+                </div>
+                <!-- Status Dot -->
+                <div id="user-status-dot"
+                  class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-900">
+                </div>
+              </div>
+              <div class="text-left">
+                <!-- SUBSCRIPTION BADGE -->
+                <p class="text-[10px] uppercase tracking-widest font-bold text-green-400"
+                  id="header-subscription-status">
+                  Online
+                </p>
+                <p class="font-bold text-white text-sm truncate max-w-[100px]" id="user-name-display">Arquitecto</p>
+              </div>
+            </div>
+
+            <button onclick="app.openManifesto()"
+              class="group flex flex-col items-center gap-1 bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/10 transition-all">
+              <i data-lucide="scroll-text"
+                class="text-yellow-400 w-5 h-5 group-hover:scale-110 transition-transform"></i>
+              <span class="text-white/50 text-[9px] font-bold uppercase tracking-wider">Manifiesto</span>
+            </button>
+
+            <!-- Toggle Tema Claro/Oscuro -->
+            <button onclick="app.toggleTheme()" id="theme-toggle-btn"
+              class="theme-toggle bg-slate-700 hover:bg-slate-600 border border-slate-600" title="Cambiar tema">
+              <div class="theme-toggle-circle bg-white shadow-md">
+                <i data-lucide="sun" class="w-4 h-4 text-amber-500 dark-hidden"></i>
+                <i data-lucide="moon" class="w-4 h-4 text-indigo-400 hidden dark-visible"></i>
+              </div>
+            </button>
+            <button onclick="app.logout()"
+              class="text-xs text-slate-400 hover:text-white transition bg-slate-800 hover:bg-red-600 px-3 py-2 rounded-lg border border-slate-700 hover:border-red-500">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- TABS - Con scroll horizontal mejorado -->
+        <div class="relative">
+          <!-- Indicador de scroll izquierda -->
+          <div
+            class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-900 to-transparent z-10 pointer-events-none opacity-0"
+            id="scroll-indicator-left"></div>
+
+          <!-- Contenedor de tabs con scroll -->
+          <div class="flex gap-2 overflow-x-auto pb-3 no-scrollbar scroll-smooth" id="tab-container">
+            <button onclick="app.switchTab('dashboard')"
+              class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all font-bold text-sm whitespace-nowrap border bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/50"
+              data-tab="dashboard">
+              <i data-lucide="activity" class="w-4 h-4"></i> Comando Central
+            </button>
+            <button onclick="app.switchTab('weekly')"
+              class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all font-bold text-sm whitespace-nowrap border bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800"
+              data-tab="weekly">
+              <i data-lucide="clipboard-list" class="w-4 h-4"></i> Plan Semanal
+            </button>
+            <button onclick="app.switchTab('monthly')"
+              class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all font-bold text-sm whitespace-nowrap border bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800"
+              data-tab="monthly">
+              <i data-lucide="target" class="w-4 h-4"></i> Visión Mensual
+            </button>
+            <button onclick="app.switchTab('systems')"
+              class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all font-bold text-sm whitespace-nowrap border bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800"
+              data-tab="systems">
+              <i data-lucide="box" class="w-4 h-4"></i> Mis Sistemas
+            </button>
+            <button onclick="app.switchTab('network')"
+              class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all font-bold text-sm whitespace-nowrap border bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800"
+              data-tab="network">
+              <i data-lucide="users" class="w-4 h-4"></i> Tribu & Apoyo
+            </button>
+            <button onclick="app.switchTab('settings')"
+              class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all font-bold text-sm whitespace-nowrap border bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800"
+              data-tab="settings">
+              <i data-lucide="settings" class="w-4 h-4"></i> Configuración
+            </button>
+
+            <!-- MASTER ADMIN BUTTON (Hidden by default) -->
+            <button onclick="app.switchTab('admin')" id="tab-btn-admin"
+              class="hidden tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all font-bold text-sm whitespace-nowrap border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20"
+              data-tab="admin">
+              <i data-lucide="shield-alert" class="w-4 h-4"></i> MASTER
+            </button>
+          </div>
+
+          <!-- Indicador de scroll derecha -->
+          <div
+            class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-slate-900 to-transparent z-10 pointer-events-none"
+            id="scroll-indicator-right"></div>
+        </div>
+      </div>
+
+      <!-- Glow effects -->
+      <div class="absolute -top-20 -right-20 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none">
+      </div>
+    </header>
+
+    <!-- MAIN APP CONTENT -->
+    <main class="max-w-4xl mx-auto px-4 pb-20">
+      <!-- MANTRA DIARIO (IA) -->
+      <div id="daily-mantra-container" class="hidden mb-10 animate-in fade-in slide-in-from-top-4 duration-1000">
+        <div class="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800/40 dark:to-blue-900/10 p-6 rounded-[2.5rem] border border-blue-100 dark:border-blue-900/20 flex flex-col md:flex-row items-center gap-6 shadow-sm relative overflow-hidden group">
+           <!-- Decoración sutil -->
+           <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-all"></div>
+           
+           <div class="bg-white dark:bg-slate-800 w-14 h-14 rounded-2xl flex items-center justify-center shadow-md shadow-blue-100 dark:shadow-none shrink-0 border border-blue-50 dark:border-blue-900/30">
+              <i data-lucide="sparkles" class="text-blue-500 w-7 h-7"></i>
+           </div>
+           <div class="flex-1 text-center md:text-left">
+              <p class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/60 mb-1">Mantra del Día</p>
+              <p id="daily-mantra-text" class="text-slate-700 dark:text-slate-200 font-serif italic text-xl leading-relaxed">
+                 <!-- Cargando sabiduría... -->
+              </p>
+           </div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD TAB -->
+    <div id="tab-dashboard" class="tab-content max-w-4xl mx-auto space-y-8 px-4">
+      <!-- Barra Superior: Racha + Fecha + Modo -->
+      <div
+        class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center gap-4">
+          <div class="bg-orange-100 text-orange-600 px-4 py-2 rounded-xl flex items-center gap-2">
+            <i data-lucide="flame" class="w-4 h-4"></i>
+            <span class="font-bold text-sm" id="streak-display">Racha: 0 días</span>
+            <button onclick="app.openStreakHistory()" class="ml-2 text-orange-400 hover:text-orange-700 transition"
+              title="Ver Historial">
+              <i data-lucide="history" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <span class="text-slate-500 text-sm">Hoy: <span class="font-bold text-slate-700"
+              id="current-date-display">Calculando...</span></span>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-right">
+            <p class="font-bold text-slate-700 text-sm" id="mode-title">MODO EXPANSIÓN (CEO)</p>
+            <p class="text-[10px] text-slate-400" id="mode-desc">Objetivo: Dominación total del día</p>
+          </div>
+          <button onclick="app.toggleMode()" id="mode-icon-container"
+            class="p-2 rounded-full bg-green-100 text-green-600 hover:scale-110 transition shadow-sm">
+            <i data-lucide="zap" class="w-5 h-5"></i>
+          </button>
+          <button onclick="app.togglePlanB()" id="btn-planb"
+            class="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border bg-red-50 text-red-600 border-red-200 hover:bg-red-100">
+            Activar Plan B
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- WIDGET: English Mastery (Correct Placement) -->
+        <div
+          class="col-span-full bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-center min-h-[160px] relative overflow-hidden"
+          id="english-widget">
+          <div
+            class="absolute right-0 top-0 w-32 h-32 bg-blue-50 rounded-bl-full -mr-8 -mt-8 opacity-50 pointer-events-none">
+          </div>
+          <!-- Content injected by JS -->
+          <div class="animate-pulse space-y-3 relative z-10">
+            <div class="h-4 bg-slate-200 rounded w-1/4"></div>
+            <div class="h-8 bg-slate-200 rounded w-3/4"></div>
+            <div class="h-4 bg-slate-200 rounded w-full"></div>
+          </div>
+        </div>
+        <!-- Columna Principal: Hábitos -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Mañana Tesla -->
+          <div class="bg-gradient-to-br from-orange-500 to-amber-500 p-6 rounded-3xl text-white shadow-xl">
+            <div class="flex justify-between items-center mb-6">
+              <div class="flex items-center gap-3">
+                <i data-lucide="sun" class="w-6 h-6"></i>
+                <h2 class="text-xl font-bold">Mañana Tesla (3-6-9)</h2>
+              </div>
+              <span class="text-3xl font-bold" id="progress-percent">0%</span>
+            </div>
+
+            <!-- Barra de Progreso -->
+            <div class="w-full h-3 bg-white/20 rounded-full overflow-hidden mb-6">
+              <div id="dashboard-progress-bar" class="h-full bg-white rounded-full transition-all duration-500 ease-out"
+                style="width: 0%"></div>
+            </div>
+
+            <div id="habits-list" class="space-y-3">
+              <!-- Los hábitos se renderizan aquí dinámicamente -->
+              <p class="text-white/50 text-center text-sm py-4">Cargando hábitos...</p>
+            </div>
+          </div>
+
+          <!-- SECCIÓN: CIERRE DE ALTO RENDIMIENTO (NOCTURNO) -->
+          <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+            <!-- Header con icono y barra de progreso -->
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-3">
+                <div class="bg-indigo-100 p-2.5 rounded-xl">
+                  <i data-lucide="moon-star" class="w-6 h-6 text-indigo-600"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-slate-800 text-lg">Cierre de Alto Rendimiento</h3>
+                  <p class="text-xs text-slate-500">Rutina nocturna para mañanas exitosas</p>
+                </div>
+              </div>
+              <!-- Indicador de progreso circular -->
+              <div class="flex items-center gap-2">
+                <span id="night-progress-text" class="text-sm font-bold text-indigo-600">0%</span>
+                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center relative">
+                  <svg class="w-10 h-10 transform -rotate-90">
+                    <circle cx="20" cy="20" r="16" stroke="#e2e8f0" stroke-width="3" fill="none" />
+                    <circle id="night-progress-circle" cx="20" cy="20" r="16" stroke="#4f46e5" stroke-width="3"
+                      fill="none" stroke-dasharray="100.53" stroke-dashoffset="100.53" stroke-linecap="round" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Barra de progreso horizontal -->
+            <div class="w-full bg-slate-100 rounded-full h-2 mb-6">
+              <div id="night-progress-bar"
+                class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+                style="width: 0%"></div>
+            </div>
+
+            <!-- Grid de hábitos nocturnos -->
+            <div id="night-habits-grid" class="grid grid-cols-2 gap-3">
+              <!-- Los hábitos se renderizan dinámicamente por JavaScript -->
+            </div>
+
+            <!-- Mensaje motivacional -->
+            <div id="night-completion-message"
+              class="hidden mt-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-200 text-center">
+              <i data-lucide="sparkles" class="w-6 h-6 text-indigo-500 mx-auto mb-2"></i>
+              <p class="text-indigo-700 font-bold">¡Cierre perfecto! Mañana será un gran día 🌟</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna Lateral -->
+        <div class="space-y-6">
+          <!-- Recordatorio del Manifiesto -->
+          <div
+            class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl text-white relative overflow-hidden">
+            <div class="absolute top-4 right-4 text-6xl text-white/10 font-serif">"</div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-3">Recordatorio del Manifiesto
+            </p>
+            <p class="text-lg italic leading-relaxed" id="manifesto-quote">
+              "La inacción no es neutral; es una elección activa por la mediocridad."
+            </p>
+          </div>
+
+          <!-- Bloques Sagrados -->
+          <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative group">
+            <button onclick="app.openSacredBlockEditor()"
+              class="absolute top-4 right-4 p-2 bg-slate-50 hover:bg-white text-slate-400 hover:text-blue-600 rounded-lg transition border border-transparent hover:border-slate-100">
+              <i data-lucide="edit-2" class="w-4 h-4"></i>
+            </button>
+            <div class="flex items-center gap-2 mb-4">
+              <i data-lucide="anchor" class="w-5 h-5 text-cyan-500"></i>
+              <h3 class="font-bold text-slate-700">Bloques Sagrados</h3>
+            </div>
+            <!-- Dynamic Content -->
+            <div id="sacred-blocks-list" class="space-y-3">
+              <div class="animate-pulse flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                <div class="w-10 h-6 bg-slate-200 rounded"></div>
+                <div class="flex-1 space-y-2">
+                  <div class="h-3 bg-slate-200 rounded w-3/4"></div>
+                  <div class="h-2 bg-slate-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Current Priority (Added back because it's useful) -->
+          <div class="relative group">
+            <button onclick="app.openWeeklyFocusEditor()"
+              class="absolute top-0 right-0 p-1.5 bg-slate-50 hover:bg-white text-slate-400 hover:text-blue-600 rounded-lg transition border border-transparent hover:border-slate-100 z-10">
+              <i data-lucide="edit-2" class="w-3 h-3"></i>
+            </button>
+            <h3 class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+              Foco Semanal #1
+            </h3>
+            <div id="dashboard-priority-1"
+              class="text-lg font-bold text-red-600 bg-red-50 p-4 rounded-xl border border-red-100">
+              Cargando...
+            </div>
+          </div>
+
+          <!-- Lectura Actual (Nuevo Bloque) -->
+          <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative group">
+            <button onclick="app.openReadingEditor()"
+              class="absolute top-4 right-4 p-2 bg-slate-50 hover:bg-white text-slate-400 hover:text-blue-600 rounded-lg transition border border-transparent hover:border-slate-100">
+              <i data-lucide="edit-2" class="w-4 h-4"></i>
+            </button>
+            <div class="flex items-center gap-2 mb-4">
+              <i data-lucide="book-open" class="w-5 h-5 text-emerald-500"></i>
+              <h3 class="font-bold text-slate-700">Lectura Actual</h3>
+            </div>
+
+            <div id="reading-block-content" class="space-y-3">
+              <!-- Se llena dinámicamente -->
+              <p class="text-sm text-slate-400">Cargando lectura...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEKLY TAB -->
+
+
+    <!-- MONTHLY TAB -->
+    <div id="tab-monthly" class="tab-content hidden max-w-2xl mx-auto space-y-6 px-4">
+      <!-- Rendered by app.js -->
+    </div>
+
+    <!-- WEEKLY PLAN TAB (History Enabled) -->
+    <div id="tab-weekly" class="tab-content hidden max-w-2xl mx-auto space-y-6 px-4">
+      <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-3 bg-white p-2 px-4 rounded-xl shadow-sm border border-slate-100">
+          <i data-lucide="map" class="w-5 h-5 text-blue-600"></i>
+          <span class="font-bold text-slate-700">Planificación Estratégica</span>
+        </div>
+
+        <!-- History Nav -->
+        <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+          <button onclick="app.changeWeek(-1)"
+            class="p-2 hover:bg-white rounded-lg transition text-slate-500 hover:text-blue-600 hover:shadow-sm">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          <div class="px-3 text-center min-w-[140px]" id="weekly-nav-label">
+            <span class="text-xs text-slate-400 block">Viendo:</span>
+            <span class="font-bold text-slate-700">Semana Actual</span>
+          </div>
+          <button onclick="app.changeWeek(1)"
+            class="p-2 hover:bg-white rounded-lg transition text-slate-500 hover:text-blue-600 hover:shadow-sm">
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <button onclick="app.saveWeekly()"
+          class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition flex items-center gap-2 shadow-lg shadow-blue-200">
+          <i data-lucide="save" class="w-4 h-4"></i>
+          Guardar
+        </button>
+      </div>
+      <!-- Weekly Content container -->
+      <div id="weekly-content-container">
+        <!-- Rendered by app.renderWeekly() -->
+      </div>
+    </div>
+
+    <!-- SYSTEMS TAB -->
+    <!-- SYSTEMS TAB -->
+    <div id="tab-systems" class="tab-content hidden max-w-5xl mx-auto px-4">
+      <!-- HEADER FIJO - NO se debe sobrescribir -->
+      <div class="mb-8">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+          <div>
+            <h2 class="text-3xl font-bold text-slate-300 italic">Biblioteca de Sistemas</h2>
+            <p class="text-slate-500 text-sm mt-1">Tus protocolos para Familia, Iglesia y Negocio.</p>
+          </div>
+          <button onclick="app.openSystemModal()"
+            class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition shadow-lg shadow-blue-200 whitespace-nowrap self-start sm:self-auto">
+            <i data-lucide="plus" class="w-5 h-5"></i> Crear Nuevo
+          </button>
+        </div>
+      </div>
+
+      <!-- GRID DE SISTEMAS - Este es el contenedor que se actualiza -->
+      <div id="systems-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Sistemas se renderizan aquí dinámicamente -->
+        <p class="text-slate-400 col-span-full text-center py-12">Cargando sistemas...</p>
+      </div>
+    </div>
+
+    <!-- NETWORK TAB -->
+    <div id="tab-network" class="tab-content hidden max-w-2xl mx-auto space-y-6 px-4">
+      <!-- Rendered by app.js -->
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div id="tab-settings" class="tab-content hidden">
+      <div class="max-w-2xl mx-auto space-y-6 px-4">
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+          <div class="bg-slate-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="settings" class="w-8 h-8 text-slate-600"></i>
+          </div>
+          <h2 class="text-2xl font-bold text-slate-800">Configuración del Sistema</h2>
+          <p class="text-slate-500 text-sm mt-2">Personaliza tu experiencia y conecta tu IA</p>
+        </div>
+
+        <!-- SECCIÓN: INTELIGENCIA ARTIFICIAL -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+          <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+            <div class="bg-purple-100 p-2 rounded-xl">
+              <i data-lucide="sparkles" class="w-5 h-5 text-purple-600"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-800">Integración con Gemini AI</h3>
+              <p class="text-xs text-slate-500">Conecta tu API key personal de Google AI</p>
+            </div>
+            <div class="ml-auto" id="api-connection-status">
+              <span class="text-slate-400 flex items-center gap-2">
+                <i data-lucide="circle" class="w-3 h-3"></i> Verificando...
+              </span>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Modelo -->
+            <div>
+              <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+                Modelo de IA
+              </label>
+              <select id="config-ai-model"
+                class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recomendado - Rápido)</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro (Más potente)</option>
+                <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Económico)</option>
+                <option value="gemini-3-flash-preview">Gemini 3 Flash (Preview - Último)</option>
+              </select>
+              <div class="mt-1 text-right">
+                <button onclick="app.listModels()" class="text-xs text-blue-500 underline">Ver modelos disponibles
+                  (Debug)</button>
+              </div>
+            </div>
+
+            <!-- API Key -->
+            <div>
+              <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+                API Key de Gemini
+              </label>
+              <div class="flex gap-2">
+                <div class="relative flex-1">
+                  <input type="password" id="config-api-key"
+                    class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500 pr-12 font-mono text-sm"
+                    placeholder="AIzaSy...">
+                  <button type="button" onclick="app.togglePasswordVisibility('config-api-key')"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <i data-lucide="eye" class="w-5 h-5"></i>
+                  </button>
+                </div>
+                <button onclick="app.testApiKey()" id="btn-test-api"
+                  class="bg-slate-900 text-white px-5 rounded-xl font-bold text-sm hover:bg-slate-800 transition whitespace-nowrap">
+                  Probar
+                </button>
+              </div>
+              <div id="api-test-result" class="mt-2 text-sm hidden p-3 rounded-lg"></div>
+              <p class="text-xs text-slate-400 mt-3 flex items-start gap-2">
+                <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                <span>
+                  Obtén tu API key gratis en
+                  <a href="https://aistudio.google.com/apikey" target="_blank"
+                    class="text-blue-500 hover:underline font-medium">
+                    Google AI Studio
+                  </a>.
+                  Tu key se guarda de forma segura y solo tú tienes acceso.
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- WIDGET: Hábitos Diarios -->
+        <div class="col-span-full md:col-span-12 bg-white rounded-3xl p-8 shadow-sm border border-slate-100 mb-8">
+          <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+            <div class="bg-blue-100 p-2 rounded-xl">
+              <i data-lucide="user" class="w-5 h-5 text-blue-600"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-800">Tu Perfil</h3>
+              <p class="text-xs text-slate-500">Personaliza cómo te ve el sistema</p>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+                Tu Nombre
+              </label>
+              <input type="text" id="config-user-name"
+                class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Jose Luis González">
+            </div>
+
+            <div>
+              <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+                Nombre de tu Empresa
+              </label>
+              <input type="text" id="config-company-name"
+                class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="BuilditNow">
+            </div>
+
+            <div>
+              <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+                Nivel de Inglés (Objetivo)
+              </label>
+              <select id="config-english-level"
+                class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="A1">A1 - Principiante</option>
+                <option value="A2">A2 - Básico</option>
+                <option value="B1">B1 - Intermedio</option>
+                <option value="B2">B2 - Intermedio Alto</option>
+                <option value="C1">C1 - Avanzado (Business)</option>
+                <option value="C2">C2 - Maestría</option>
+              </select>
+
+              <!-- Selector de Tema -->
+              <div class="pt-4 border-t border-slate-100">
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 block">
+                  Tema de la Aplicación
+                </label>
+                <div class="flex gap-3">
+                  <button onclick="app.applyTheme('light')" id="theme-light-btn"
+                    class="flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 hover:border-amber-300">
+                    <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                      <i data-lucide="sun" class="w-5 h-5 text-amber-600"></i>
+                    </div>
+                    <span class="text-sm font-bold">Claro</span>
+                  </button>
+                  <button onclick="app.applyTheme('dark')" id="theme-dark-btn"
+                    class="flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 hover:border-indigo-300">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <i data-lucide="moon" class="w-5 h-5 text-indigo-600"></i>
+                    </div>
+                    <span class="text-sm font-bold">Oscuro</span>
+                  </button>
+                  <button onclick="app.applyTheme('auto')" id="theme-auto-btn"
+                    class="flex-1 p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 hover:border-slate-300">
+                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                      <i data-lucide="monitor" class="w-5 h-5 text-slate-600"></i>
+                    </div>
+                    <span class="text-sm font-bold">Auto</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN: CUENTA -->
+          <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+              <div class="bg-slate-100 p-2 rounded-xl">
+                <i data-lucide="shield" class="w-5 h-5 text-slate-600"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-slate-800">Cuenta</h3>
+                <p class="text-xs text-slate-500" id="config-email-display">email@ejemplo.com</p>
+              </div>
+            </div>
+
+            <div class="flex gap-3">
+              <button onclick="app.sendPasswordReset()"
+                class="flex-1 bg-slate-100 text-slate-700 py-3 rounded-xl font-bold text-sm hover:bg-slate-200 transition">
+                Cambiar Contraseña
+              </button>
+              <button onclick="app.logout()"
+                class="bg-red-50 text-red-600 px-6 py-3 rounded-xl font-bold text-sm hover:bg-red-100 transition">
+                Cerrar Sesión
+              </button>
+            </div>
+          </div>
+
+          <!-- BOTÓN GUARDAR -->
+          <button id="btn-save-settings" onclick="app.saveSettings()"
+            class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-lg shadow-blue-200">
+            <i data-lucide="save" class="w-5 h-5"></i>
+            Guardar Configuración
+          </button>
+
+        </div>
+      </div>
+
+      <!-- TAB: MASTER ADMIN -->
+      <div id="tab-admin" class="hidden tab-content">
+        <div class="max-w-6xl mx-auto space-y-6">
+
+          <div
+            class="bg-slate-900 text-white p-8 rounded-3xl shadow-xl flex justify-between items-center relative overflow-hidden">
+            <div class="relative z-10">
+              <h2 class="text-3xl font-black mb-2 flex items-center gap-3">
+                <i data-lucide="shield-alert" class="w-8 h-8 text-red-500"></i>
+                PANEL DE CONTROL MASTER
+              </h2>
+              <p class="text-slate-400">Control absoluto sobre acceso y suscripciones.</p>
+            </div>
+            <div class="relative z-10 flex items-center gap-3">
+              <button onclick="app.runDiagnostics()"
+                class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl border border-slate-700 transition flex items-center gap-2">
+                <i data-lucide="tool" class="w-4 h-4"></i> Auditoría
+              </button>
+              <button onclick="app.loadAdminUsers()"
+                class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-900/50 transition flex items-center gap-2">
+                <i data-lucide="refresh-cw" class="w-5 h-5"></i> Refrescar Usuarios
+              </button>
+            </div>
+
+            <!-- Background Pattern -->
+            <div
+              class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+            </div>
+          </div>
+
+          <!-- Users Grid Container -->
+          <div id="admin-users-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- JS Rendered Content -->
+            <div class="col-span-full text-center py-20 text-slate-400">
+              <i data-lucide="loader" class="w-10 h-10 animate-spin mx-auto mb-4"></i>
+              Cargando base de datos de usuarios...
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+    <!-- MANIFESTO MODAL -->
+    <div id="manifesto-modal"
+      class="fixed inset-0 bg-slate-900/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+      <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8 relative shadow-2xl">
+        <button onclick="app.closeManifesto()"
+          class="absolute top-4 right-4 bg-slate-100 p-2 rounded-full hover:bg-slate-200 transition">
+          <i data-lucide="x" class="w-6 h-6 text-slate-500"></i>
+        </button>
+        <div class="prose prose-slate mx-auto">
+          <div class="text-center mb-8">
+            <span
+              class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Confidencial</span>
+            <h2 class="text-3xl font-black text-slate-900 mt-4 mb-2">EL MANIFIESTO DEL ARQUITECTO</h2>
+            <p class="text-xl text-slate-500 italic">"Los sistemas te liberan, la disciplina te mantiene."</p>
+          </div>
+
+          <div class="space-y-6 text-lg text-slate-700 leading-relaxed">
+            <p>
+              <strong class="text-blue-600 block mb-1">1. SOY UN CONSTRUCTOR, NO UN VÍCTIMA.</strong>
+              Todo lo que me rodea es resultado de mis decisiones o de mi tolerancia. Si no me gusta, lo rediseño.
+            </p>
+            <p>
+              <strong class="text-blue-600 block mb-1">2. LOS HÁBITOS SON EL ALGORITMO DE MI VIDA.</strong>
+              No confío en la "fuerza de voluntad". Confío en protocolos ejecutables. Si A, entonces B. Sin negociación.
+            </p>
+            <p>
+              <strong class="text-blue-600 block mb-1">3. MI CÍRCULO DETERMINA MI ALTITUD.</strong>
+              Soy el promedio de las 5 personas con las que paso mi tiempo. Si soy el más listo de la sala, estoy en la
+              sala equivocada.
+            </p>
+            <p>
+              <strong class="text-blue-600 block mb-1">4. ACCIÓN MASIVA IMPERFECTA >>> PLANIFICACIÓN PERFECTA.</strong>
+              El miedo muere en el movimiento. Lanzo versión 1.0 hoy, corrijo mañana. La parálisis por análisis es la
+              muerte.
+            </p>
+            <p>
+              <strong class="text-blue-600 block mb-1">5. PROTEJO MI ENERGÍA COMO MI CAPITAL MÁS VALIOSO.</strong>
+              No regalo mi atención. No consumo basura (noticias, chismes, comida procesada). Mi cuerpo y mi mente son
+              el
+              hardware de mi éxito.
+            </p>
+          </div>
+
+          <div class="mt-12 p-6 bg-slate-900 text-white rounded-2xl text-center">
+            <p class="font-bold text-lg mb-4">¿Te comprometes a vivir bajo este código hoy?</p>
+            <button onclick="app.closeManifesto()"
+              class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold text-lg transition shadow-lg shadow-blue-900/50 hover:scale-105">
+              SÍ, ME COMPROMETO ⚔️
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WIZARD MODAL (SYSTEMS) -->
+    <div id="wizard-modal"
+      class="fixed inset-0 bg-slate-900/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+      <div class="bg-white rounded-3xl max-w-lg w-full p-8 relative shadow-2xl">
+        <!-- wizard content same as old app but improved maybe? Keeping simple for now -->
+        <button onclick="app.closeSystemModal()"
+          class="absolute top-4 right-4 bg-slate-100 p-2 rounded-full hover:bg-slate-200 transition">
+          <i data-lucide="x" class="w-6 h-6 text-slate-500"></i>
+        </button>
+        <h3 class="text-2xl font-bold mb-1 text-slate-800">Diseñador de Sistemas</h3>
+        <p class="text-slate-500 text-sm mb-6">Convierte una meta en un protocolo ejecutable.</p>
+
+        <form id="system-form" onsubmit="event.preventDefault(); app.saveSystem({
+                area: this.area.value, 
+                title: this.title.value,
+                goal: this.goal.value,
+                identity: this.identity.value,
+                action: this.action.value,
+                trigger: this.trigger.value,
+                environment: this.environment.value,
+                plan_b: this.planb.value
+            })" class="space-y-4">
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="label">Área</label>
+              <select id="sys-area" name="area" class="input">
+                <option value="Espiritual">🙏 Espiritual</option>
+                <option value="Familia">👨‍👩‍👧 Familia</option>
+                <option value="Salud">💪 Salud</option>
+                <option value="Trabajo">💼 Trabajo</option>
+                <option value="Finanzas">💰 Finanzas</option>
+                <option value="Relaciones">🤝 Relaciones</option>
+                <option value="Educación">📚 Educación</option>
+                <option value="Creatividad">🎨 Creatividad</option>
+              </select>
+            </div>
+            <div>
+              <label class="label">Meta (Qué quieres lograr)</label>
+              <input id="sys-goal" name="goal" class="input" placeholder="Ej: Bajar 5kg">
+            </div>
+          </div>
+
+          <button type="button" onclick="app.generateAI()" id="btn-ai"
+            class="w-full bg-purple-100 text-purple-700 py-3 rounded-xl font-bold text-sm hover:bg-purple-200 transition flex items-center justify-center gap-2 border border-purple-200">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            IA: Generar Sistema Automático
+          </button>
+
+          <div>
+            <label class="label">Nombre del Sistema</label>
+            <input id="sys-title" name="title" class="input" placeholder="Ej: Protocolo Mañanero">
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="label">Identidad (Soy...)</label>
+              <input id="sys-identity" name="identity" class="input" placeholder="Soy atleta">
+            </div>
+            <div>
+              <label class="label">Acción (< 2 min)</label>
+                  <input id="sys-action" name="action" class="input" placeholder="Ponerme zapatillas">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="label">Gatillo (Cuando...)</label>
+              <input id="sys-trigger" name="trigger" class="input" placeholder="Suena alarma 7am">
+            </div>
+            <div>
+              <label class="label">Entorno</label>
+              <input id="sys-environment" name="environment" class="input" placeholder="Ropa lista noche anterior">
+            </div>
+          </div>
+
+          <div>
+            <label class="label">Plan B (Si todo falla)</label>
+            <input id="sys-planb" name="planb" class="input" placeholder="Hacer 5 flexiones">
+          </div>
+
+          <button type="submit"
+            class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200 mt-4">
+            Guardar Sistema
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ADD NETWORK MODAL -->
+    <!-- SUBSCRIPTION LOCKED OVERLAY -->
+    <div id="subscription-locked-overlay"
+      class="fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-xl hidden flex items-center justify-center p-4">
+      <div class="bg-white max-w-lg w-full rounded-3xl p-8 shadow-2xl text-center relative overflow-hidden">
+        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i data-lucide="lock" class="w-10 h-10 text-red-600"></i>
+        </div>
+
+        <h2 class="text-3xl font-black text-slate-800 mb-2">Acceso Expirado</h2>
+        <p class="text-slate-500 mb-8">Tu periodo de prueba o suscripción ha finalizado.</p>
+
+        <div class="bg-slate-50 rounded-xl p-6 mb-8 border border-slate-100">
+          <p class="text-sm font-bold text-slate-700 mb-2">Para reactivar tu acceso:</p>
+          <p class="text-slate-600">Contacta al administrador Master.</p>
+        </div>
+
+        <button onclick="app.logout()"
+          class="w-full py-4 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition">
+          Cerrar Sesión
+        </button>
+      </div>
+    </div>
+
+    <div id="add-network-modal"
+      class="hidden fixed inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+      <!-- Content will be implemented in app.js or dynamic html -->
+      <div class="bg-white rounded-3xl max-w-md w-full p-8 relative shadow-2xl">
+        <button onclick="document.getElementById('add-network-modal').classList.add('hidden')"
+          class="absolute top-4 right-4 bg-slate-100 p-2 rounded-full hover:bg-slate-200 transition">
+          <i data-lucide="x" class="w-6 h-6 text-slate-500"></i>
+        </button>
+        <h3 class="text-2xl font-bold mb-6 text-slate-800" id="network-modal-title">Añadir a la Tribu</h3>
+        <form id="network-form" onsubmit="event.preventDefault(); app.handleNetworkSubmit(event);" class="space-y-4">
+          <!-- Hidden input for ID (editing mode) -->
+          <input type="hidden" id="net-id" name="id">
+
+          <div>
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Nombre</label>
+            <input id="net-name" name="name"
+              class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold text-slate-700"
+              required>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Relación</label>
+              <input id="net-relationship" name="relationship"
+                class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                placeholder="Amigo, Socio..." required>
+            </div>
+            <div>
+              <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Rol en tu vida</label>
+              <input id="net-role" name="role"
+                class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                placeholder="Mentor, Apoyo..." required>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Recordatorio
+              Clave</label>
+            <input id="net-reminder" name="reminder"
+              class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              placeholder="Ej: No hablar de política">
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Color Avatar</label>
+            <select id="net-color" name="color"
+              class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+              <option value="blue">Azul</option>
+              <option value="rose">Rosa</option>
+              <option value="amber">Ámbar</option>
+              <option value="teal">Verde Azulado</option>
+              <option value="purple">Morado</option>
+              <option value="emerald">Esmeralda</option>
+              <option value="indigo">Índigo</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-xl">
+            <input type="checkbox" name="is_candidate" id="net-is_candidate"
+              class="w-5 h-5 rounded text-blue-600 focus:ring-blue-500">
+            <label for="net-is_candidate" class="text-sm font-medium text-slate-700">Es un candidato (Expansión)</label>
+          </div>
+
+          <button type="submit" id="btn-save-network"
+            class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">
+            Guardar Persona
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- RECOVERY MODAL -->
+    <div id="recover-modal"
+      class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-300">
+      <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 relative">
+        <button onclick="document.getElementById('recover-modal').classList.add('hidden')"
+          class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <div class="text-center mb-6">
+          <div class="bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i data-lucide="key-round" class="text-blue-600 w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800">Recuperar Acceso</h3>
+          <p class="text-sm text-slate-500">Te enviaremos las instrucciones de restablecimiento.</p>
+        </div>
+
+        <form id="recover-form" class="space-y-4" onsubmit="event.preventDefault(); app.sendPasswordReset()">
+          <input type="email" id="recover-email" placeholder="tu@email.com"
+            class="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required>
+          <div id="recover-feedback" class="hidden text-sm p-3 rounded-xl text-center"></div>
+          <button type="submit" id="btn-recover"
+            class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition">
+            Enviar Link
+          </button>
+        </form>
+      </div>
+    </div>
+
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+
+    <script>
+      // Fail-Safe: Force remove loading screen after 8 seconds if app hangs
+      setTimeout(() => {
+        const loading = document.getElementById('app-loading');
+        if (loading && !loading.classList.contains('hidden')) {
+          console.warn("Force removing loading screen due to timeout");
+          loading.classList.add('hidden');
+          document.getElementById('app-container').classList.remove('hidden');
+          // Check auth state manually ??
+          if (!window.app || !window.app.userId) {
+            document.getElementById('login-overlay').classList.remove('hidden');
+          }
+        }
+      }, 8000);
+
+      lucide.createIcons();
+    </script>
+    <!-- MODAL: Consejo IA para Conexión -->
+    <div id="ai-advice-modal"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+      <div
+        class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-300">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+              <i data-lucide="sparkles" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-lg">Consejo de Conexión</h3>
+              <p id="ai-advice-person-name" class="text-white/80 text-sm">Para conectar con...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6 space-y-4">
+          <!-- Loading State -->
+          <div id="ai-advice-loading" class="flex flex-col items-center justify-center py-8">
+            <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+            <p class="text-slate-500 text-sm">Consultando a la IA...</p>
+          </div>
+
+          <!-- Result State -->
+          <div id="ai-advice-result" class="hidden space-y-4">
+            <!-- Consejo -->
+            <div
+              class="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-4 rounded-2xl border border-amber-200 dark:border-amber-700">
+              <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="lightbulb" class="w-5 h-5 text-amber-500"></i>
+                <span
+                  class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Consejo</span>
+              </div>
+              <p id="ai-advice-tip" class="text-slate-700 dark:text-slate-200 leading-relaxed"></p>
+            </div>
+
+            <!-- Tema de conversación -->
+            <div
+              class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-2xl border border-blue-200 dark:border-blue-700">
+              <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="message-circle" class="w-5 h-5 text-blue-500"></i>
+                <span class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Tema de
+                  Conversación</span>
+              </div>
+              <p id="ai-advice-topic" class="text-slate-700 dark:text-slate-200 leading-relaxed"></p>
+            </div>
+
+            <!-- Pregunta sugerida -->
+            <div
+              class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-2xl border border-purple-200 dark:border-purple-700">
+              <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="help-circle" class="w-5 h-5 text-purple-500"></i>
+                <span class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Pregunta
+                  Sugerida</span>
+              </div>
+              <p id="ai-advice-question" class="text-slate-700 dark:text-slate-200 italic leading-relaxed">"..."</p>
+            </div>
+          </div>
+
+          <!-- Error State -->
+          <div id="ai-advice-error" class="hidden">
+            <div
+              class="bg-red-50 dark:bg-red-900/20 p-4 rounded-2xl border border-red-200 dark:border-red-700 text-center">
+              <i data-lucide="alert-triangle" class="w-10 h-10 text-red-400 mx-auto mb-3"></i>
+              <p id="ai-advice-error-text" class="text-red-600 dark:text-red-400 font-medium"></p>
+              <p class="text-red-500 dark:text-red-500 text-sm mt-2">Verifica tu API Key en Configuración</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 pb-6 flex gap-3">
+          <button onclick="app.closeAiAdviceModal()"
+            class="flex-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 py-3 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition">
+            Cerrar
+          </button>
+          <button onclick="app.copyAiAdvice()" id="ai-advice-copy-btn"
+            class="hidden flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition flex items-center justify-center gap-2">
+            <i data-lucide="copy" class="w-4 h-4"></i>
+            Copiar
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- DEEP WORK FLOATING BUTTON -->
+    <button onclick="app.openFocusMode()"
+      class="fixed bottom-8 right-8 bg-amber-500 text-white p-4 rounded-full shadow-xl shadow-amber-500/30 hover:scale-110 hover:rotate-12 transition z-40 group">
+      <i data-lucide="zap" class="w-8 h-8 fill-current"></i>
+      <span
+        class="absolute right-full mr-4 bg-slate-800 text-white px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none top-1/2 -translate-y-1/2">
+        Modo Enfoque
+      </span>
+    </button>
+
+    <!-- DEEP WORK MODAL -->
+    <div id="focus-modal"
+      class="fixed inset-0 bg-slate-900 z-[100] hidden flex flex-col items-center justify-center p-6 text-white animate-in zoom-in duration-300">
+      <button onclick="app.closeFocusMode()"
+        class="absolute top-8 right-8 p-2 hover:bg-white/10 rounded-full transition">
+        <i data-lucide="x" class="w-8 h-8 text-slate-400"></i>
+      </button>
+
+      <div class="max-w-4xl w-full text-center space-y-12">
+        <div>
+          <span
+            class="bg-amber-500/20 text-amber-500 px-4 py-2 rounded-full font-bold uppercase tracking-[0.2em] text-sm">Deep
+            Work Session</span>
+          <h2 class="text-6xl font-black mt-6 tracking-tight">ENFOQUE TOTAL</h2>
+        </div>
+
+        <!-- Timer -->
+        <div
+          class="font-mono text-[120px] leading-none font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-500"
+          id="timer-display">
+          90:00
+        </div>
+
+        <!-- Controls -->
+        <div class="flex flex-col items-center gap-8">
+          <div class="w-full max-w-md">
+            <select id="focus-task-select"
+              class="w-full bg-white/10 border-white/20 text-white text-xl p-4 rounded-2xl text-center focus:outline-none focus:ring-2 focus:ring-amber-500 appearance-none">
+              <!-- JS Injected -->
+            </select>
+          </div>
+
+          <div class="flex items-center gap-6">
+            <button id="btn-timer-action" onclick="app.startTimer()"
+              class="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center hover:scale-105 transition shadow-2xl shadow-green-500/40">
+              <i data-lucide="play" class="w-8 h-8 fill-current"></i>
+            </button>
+
+            <button id="btn-noise" onclick="app.toggleNoise()"
+              class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition backdrop-blur-sm">
+              <i data-lucide="headphones" class="w-6 h-6"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="assets/js/firebase-config.js?v=4.0"></script>
+    <script src="assets/js/app.js?v=4.3"></script>
+    <script>
+      // Initialize Dashboard
+      document.addEventListener('DOMContentLoaded', () => {
+        app.init();
+      });
+    </script>
+    <!-- LOCKED OVERLAY (Access Expired) -->
+    <div id="subscription-locked-overlay"
+      class="fixed inset-0 bg-slate-900 z-[200] hidden flex items-center justify-center p-6 animate-in fade-in duration-500">
+      <!-- Content injected by app.js showLockedOverlay() -->
+    </div>
+
+</body>
+
+</html>
