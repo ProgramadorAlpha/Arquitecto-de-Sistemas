@@ -17,6 +17,7 @@ import {
   Info,
   Loader2,
   Target,
+  Shield,
   ShieldAlert,
   Brain,
   Swords,
@@ -417,6 +418,24 @@ const DashboardTab = () => {
     }
   ], []); // static list — never changes
 
+  // Cálculo de Racha (Streak) local para el Dashboard
+  const streakCount = React.useMemo(() => {
+    let count = 0;
+    const d = new Date();
+    const pastDays = [...Array(30)].map((_, i) => {
+        const temp = new Date(d);
+        temp.setDate(temp.getDate() - i);
+        const tzOffset = temp.getTimezoneOffset() * 60000;
+        return new Date(temp.getTime() - tzOffset).toISOString().split('T')[0];
+    });
+    
+    for (const dateStr of pastDays) {
+        if (data?.history && data.history[dateStr] && data.history[dateStr].score >= 70) count++;
+        else if (dateStr !== today) break;
+    }
+    return count;
+  }, [data?.history, today]);
+
   if (loading) return <div className="p-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto text-blue-500" /></div>;
 
   const currentMonth = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
@@ -427,16 +446,109 @@ const DashboardTab = () => {
   const totalItems = morningHabits.length + (data.englishWords.length > 0 ? 1 : 0) + nightHabitsList.length;
   const totalProgress = Math.round(((morningDone + (data.englishCompleted ? 1 : 0) + nightDone) / totalItems) * 100) || 0;
 
+  const getDayLabel = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00:00');
+    return ['D','L','M','X','J','V','S'][d.getDay()];
+  };
+
   return (
-    <div className="p-4 md:p-8 space-y-8 pb-32 max-w-6xl mx-auto">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-blue-500/30">
+      {/* STATUS BAR HORIZONTAL (Sólo Mobile/Tablet) */}
+      <div className="w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between shadow-sm z-20 relative lg:hidden">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-xl font-black text-sm uppercase tracking-wider">
+             <span className="text-lg">🔥</span> {streakCount} {streakCount === 1 ? 'DÍA' : 'DÍAS'}
+          </div>
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+          <div className="hidden sm:block">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest">
+              {today}
+            </h2>
+          </div>
+        </div>
+        <button
+          onClick={togglePlanB}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all duration-500 ${
+            settings.planB
+              ? 'bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500/20'
+              : 'bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800'
+          }`}
+        >
+          {settings.planB ? <ShieldAlert className="w-4 h-4 animate-pulse" /> : <Shield className="w-4 h-4" />}
+          <span className="text-[10px] font-black uppercase tracking-widest">{settings.planB ? 'Plan B Activo' : 'Plan B Off'}</span>
+        </button>
+      </div>
+
+      {/* DASHBOARD CANVAS (Contenedor Maestro) */}
+      <div className="w-full max-w-[1700px] mx-auto p-6 md:p-8 flex flex-col gap-8 pb-32">
+        {/* Header Indicator / Desktop Status */}
+        <div className="flex items-center justify-between z-10 relative">
+          <div className="flex flex-col">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-500 mb-1 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              Sincronización Biotécnica
+            </p>
+            <h2 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tighter lg:hidden">
+              {today}
+            </h2>
+          </div>
+          
+          {/* Desktop Only Status Indicators (Premium Feel) */}
+          <div className="hidden lg:flex items-center gap-3">
+              <div className="flex flex-col items-end mr-4">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Racha Actual</span>
+                <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 font-black text-lg">
+                  <span className="text-xl">🔥</span> {streakCount} {streakCount === 1 ? 'DÍA' : 'DÍAS'}
+                </div>
+              </div>
+              <div className="h-10 w-px bg-slate-200 dark:bg-slate-800 mx-2"></div>
+              <button
+                onClick={togglePlanB}
+                className={`flex items-center gap-3 px-5 py-2.5 rounded-2xl border-2 transition-all duration-500 ${
+                  settings.planB
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500/20 shadow-lg shadow-amber-500/5'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 hover:border-slate-300 dark:hover:border-slate-700'
+                }`}
+              >
+                {settings.planB ? <ShieldAlert className="w-5 h-5 animate-pulse" /> : <Shield className="w-5 h-5" />}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest">{settings.planB ? 'Plan B Activo' : 'Plan B Off'}</span>
+                </div>
+              </button>
+          </div>
+        </div>
 
       {/* ═══════════════════════════════════════════
           1. TOP BANNER — Circular Progress + Chips
          ═══════════════════════════════════════════ */}
-      <div className="flex flex-col gap-5 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950/30 p-8 rounded-[3rem] border border-slate-800/50 shadow-2xl relative overflow-hidden">
+      <div className="flex flex-col gap-5 bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/30 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800/50 shadow-2xl relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute -right-20 -top-20 w-60 h-60 bg-blue-500/5 rounded-full blur-3xl" />
         <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-indigo-500/5 rounded-full blur-2xl" />
+
+        {/* Header Indicator */}
+        <div className="flex items-center justify-between z-10 relative">
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-500 mb-1 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+            Progreso del Día
+          </p>
+          <div className="hidden lg:flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-xl font-black text-xs uppercase tracking-wider border border-orange-500/20">
+                 <span className="text-sm">🔥</span> {streakCount} {streakCount === 1 ? 'DÍA' : 'DÍAS'}
+              </div>
+              <button
+                onClick={togglePlanB}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 transition-all duration-500 ${
+                  settings.planB
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500/20'
+                    : 'bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800'
+                }`}
+              >
+                {settings.planB ? <ShieldAlert className="w-4 h-4 animate-pulse" /> : <Shield className="w-4 h-4" />}
+                <span className="text-[10px] font-black uppercase tracking-widest">{settings.planB ? 'Plan B' : 'Plan B Off'}</span>
+              </button>
+          </div>
+        </div>
 
         {/* ── ROW 1: Progreso + info ── */}
         <div className="flex items-center gap-6 relative z-10">
@@ -492,14 +604,14 @@ const DashboardTab = () => {
         <div className={`relative z-10 flex items-center justify-between p-3.5 px-5 rounded-[2rem] border transition-all ${
             data.planBActive 
               ? 'bg-red-500/10 border-red-500/30' 
-              : 'bg-[#151518] border-[#1e1e24] shadow-xl'
+              : 'bg-slate-50 dark:bg-[#151518] border-slate-200 dark:border-[#1e1e24] shadow-xl'
           }`}>
           <div className="flex items-center gap-4">
             <div className={`p-2.5 rounded-full flex items-center justify-center ${data.planBActive ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'bg-[#1e1e24] text-emerald-400'}`}>
               {data.planBActive ? <ShieldAlert className="w-5 h-5" /> : <Zap className="w-5 h-5 fill-emerald-400" />}
             </div>
             <div className="text-left">
-              <h4 className="font-extrabold text-[15px] uppercase tracking-wide leading-tight text-white mb-[2px]">
+              <h4 className="font-extrabold text-[15px] uppercase tracking-wide leading-tight text-slate-900 dark:text-white mb-[2px]">
                 {data.planBActive ? 'MODO PLAN B ACTIVO' : 'MODO EXPANSIÓN (CEO)'}
               </h4>
               <p className="text-slate-500 text-[12px] font-medium leading-none">
@@ -510,9 +622,9 @@ const DashboardTab = () => {
           <button 
             onClick={() => togglePlanB()}
             className={`px-5 py-2.5 rounded-xl text-[11px] font-bold uppercase transition-all whitespace-nowrap ml-6 shadow-sm ${
-              data.planBActive
-                ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                : 'bg-white text-red-500 hover:bg-slate-100'
+                data.planBActive
+                ? 'bg-slate-800 text-white hover:bg-slate-700'
+                : 'bg-indigo-600 text-white hover:bg-indigo-700'
             }`}
           >
             {data.planBActive ? 'DESACTIVAR PLAN B' : 'ACTIVAR PLAN B'}
@@ -520,16 +632,17 @@ const DashboardTab = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* ═══════════════════════════════════════
-            MAIN COLUMN (2/3)
-           ═══════════════════════════════════════ */}
-        <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-12 gap-8">
+        {/* =======================
+            MAIN COLUMN (8/12)
+            ======================= */}
+        <div className="xl:col-span-8 flex flex-col gap-8">
 
           {/* ─── 2. TESLA MORNING 3-6-9 ─── */}
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100 dark:border-slate-800">
             {/* Header */}
-            <div className="bg-[#ea580c] p-8 pb-6 text-white flex justify-between items-start">
+            <div className="bg-gradient-to-r from-orange-600 to-amber-500 dark:from-orange-700 dark:to-orange-900 p-8 pb-6 text-white flex justify-between items-start overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-xl"></div>
               <div>
                 <h3 className="text-3xl font-black tracking-tight leading-none mb-1">Tesla Morning</h3>
                 <p className="text-orange-200 font-medium tracking-wide">3 · 6 · 9 Protocol</p>
@@ -581,7 +694,7 @@ const DashboardTab = () => {
                   <button 
                     key={item.key}
                     onClick={() => toggleHabit(item.key)}
-                    className={`w-full flex items-center p-4 rounded-[2rem] border-y border-r border-l-[6px] border-r-slate-100 border-y-slate-100 dark:border-r-slate-800 dark:border-y-slate-800 ${color.border} transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-lg ${isDone ? color.activeBg : 'bg-white dark:bg-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]'}`}
+                    className={`w-full flex items-center p-4 rounded-[2rem] border-y border-r border-l-[6px] border-r-slate-100 border-y-slate-100 dark:border-r-slate-800 dark:border-y-slate-800 ${color.border} transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-lg ${isDone ? color.activeBg : 'bg-slate-50/50 dark:bg-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]'}`}
                   >
                     {/* Number Circle */}
                     <div className={`ml-2 w-12 h-12 rounded-full flex items-center justify-center text-xl font-black shrink-0 ${color.numBg} ${isDone ? 'opacity-50' : ''}`}>
@@ -613,6 +726,102 @@ const DashboardTab = () => {
             </div>
           </div>
 
+          {/* ─── 5. CIERRE DE ALTO RENDIMIENTO ─── */}
+          <div className="bg-white dark:bg-[#0B0B0E] p-8 rounded-[3rem] text-slate-800 dark:text-white shadow-2xl relative border border-slate-100 dark:border-slate-800/60 transition-colors">
+            {/* Header section matching screenshot */}
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-4">
+                    <div className="bg-indigo-50 dark:bg-white p-3.5 rounded-3xl shadow-sm">
+                        <Moon className="w-7 h-7 text-[#30338F] stroke-[2]" />
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-bold tracking-tight text-slate-800 dark:text-white">Cierre de Alto Rendimiento</h3>
+                        <p className="text-slate-500 text-[13px] font-medium mt-0.5">Rutina nocturna para mañanas exitosas</p>
+                    </div>
+                </div>
+                {/* Percentage & exact circle matching the screenshot */}
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-[#6366f1] font-bold text-sm tracking-tight leading-none">{Math.round((nightDone / nightHabitsList.length) * 100) || 0}%</span>
+                  <div className="relative w-7 h-7">
+                    <svg width="28" height="28" className="transform -rotate-90">
+                      <circle cx="14" cy="14" r="11" stroke="#1f2937" strokeWidth="2.5" fill="none" />
+                      <circle 
+                        cx="14" cy="14" r="11" 
+                        stroke="#6366f1" 
+                        strokeWidth="2.5" 
+                        fill="none" 
+                        strokeLinecap="round"
+                        strokeDasharray={2 * Math.PI * 11}
+                        strokeDashoffset={2 * Math.PI * 11 - (nightDone / nightHabitsList.length) * 2 * Math.PI * 11}
+                        className="transition-all duration-700"
+                      />
+                    </svg>
+                  </div>
+                </div>
+            </div>
+
+            {/* Horizontal Progress Bar */}
+            <div className="w-full h-2 bg-[#1e293b] rounded-full overflow-hidden mb-6">
+              <div 
+                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-700 rounded-full"
+                style={{ width: `${(nightDone / nightHabitsList.length) * 100}%` }}
+              />
+            </div>
+
+                {/* Checkboxes grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
+                {nightHabitsList.map(item => {
+                  const isDone = data.nightHabits[item.key];
+                  return (
+                    <button 
+                      key={item.key}
+                      onClick={() => toggleNightHabit(item.key)}
+                      className={`flex flex-col justify-between p-5 rounded-[2rem] transition-all duration-300 text-left min-h-[140px]
+                        ${isDone 
+                          ? `${item.theme.bg} border-transparent scale-[1.02] shadow-[0_0_20px_rgba(0,0,0,0.15)] z-10` 
+                          : 'bg-[#151518] hover:bg-[#1a1a1f] border border-transparent hover:border-slate-800/80 shadow-none'}`}
+                    >
+                      {/* Top icons row */}
+                      <div className="flex items-start justify-between w-full mb-4">
+                        <div className={`p-2.5 rounded-2xl flex items-center justify-center transition-colors
+                          ${isDone ? `bg-white/90 ${item.theme.icon}` : 'bg-[#1e1e24] ' + item.color}`}>
+                           {item.icon}
+                        </div>
+                        <div className="pt-1 pr-1">
+                           {isDone 
+                             ? <CheckCircle2 className={`w-7 h-7 text-white ${item.theme.fill}`} strokeWidth={2} /> 
+                             : <Circle className="w-7 h-7 text-slate-700 stroke-[1.5]" />}
+                        </div>
+                      </div>
+
+                      {/* Text content */}
+                      <div className="mt-auto">
+                        <h4 className={`font-bold text-[15px] leading-snug mb-0.5 transition-colors ${isDone ? item.theme.text : 'text-slate-200'}`}>
+                          {item.label}
+                        </h4>
+                        <p className={`text-xs font-medium transition-colors ${isDone ? item.theme.sub : 'text-slate-500'}`}>
+                          {item.subLabel}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+            </div>
+            
+            {/* Victory message */}
+            {nightDone === nightHabitsList.length && (
+                <div className="mt-6 p-5 bg-white rounded-[2rem] flex flex-col items-center justify-center animate-bounce shadow-xl shadow-white/5 border border-slate-100">
+                    <Sparkles className="w-8 h-8 text-[#30338F] mb-1" />
+                    <p className="text-[#30338F] font-bold text-[17px] text-center leading-tight">¡Cierre perfecto! Mañana será<br/>un gran día 🌟</p>
+                </div>
+            )}
+          </div>
+        </div>
+
+        {/* =======================
+            SIDEBAR COLUMN (4/12)
+            ======================= */}
+        <div className="xl:col-span-4 flex flex-col gap-8 h-full">
           {/* ─── 3. BUSINESS ENGLISH C1 ─── */}
           {data.englishWords.length > 0 ? (
             <EnglishWidget
@@ -662,7 +871,7 @@ const DashboardTab = () => {
             const mc = modeConfig[data.mentalState] || modeConfig[''];
 
             return (
-              <div className="bg-gradient-to-br from-slate-900 to-slate-950 p-8 rounded-[3rem] border border-slate-800/50 shadow-xl relative overflow-hidden">
+              <div className="bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-950 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800/50 shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl -mr-16 -mt-16" />
                 <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl -ml-10 -mb-10" />
 
@@ -750,7 +959,7 @@ const DashboardTab = () => {
                     ))}
                     <div className="ml-auto flex items-center gap-1.5">
                       <span className="text-[9px] font-bold text-slate-500">HOY:</span>
-                      <span className="text-[11px] font-black text-white">{todayEntry.level > 0 ? `${todayEntry.level}/10 ${mc.emoji}` : '—'}</span>
+                      <span className="text-[11px] font-black text-slate-800 dark:text-white">{todayEntry.level > 0 ? `${todayEntry.level}/10 ${mc.emoji}` : '—'}</span>
                     </div>
                   </div>
                 </div>
@@ -758,103 +967,6 @@ const DashboardTab = () => {
             );
           })()}
 
-          {/* ─── 5. CIERRE DE ALTO RENDIMIENTO ─── */}
-          {/* ─── 5. CIERRE DE ALTO RENDIMIENTO ─── */}
-          <div className="bg-[#0B0B0E] p-8 rounded-[3rem] text-white shadow-2xl relative border border-slate-800/60">
-            {/* Header section matching screenshot */}
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-4">
-                    <div className="bg-white p-3.5 rounded-3xl shadow-sm">
-                        <Moon className="w-7 h-7 text-[#30338F] stroke-[2]" />
-                    </div>
-                    <div>
-                        <h3 className="text-xl font-bold tracking-tight">Cierre de Alto Rendimiento</h3>
-                        <p className="text-slate-500 text-[13px] font-medium mt-0.5">Rutina nocturna para mañanas exitosas</p>
-                    </div>
-                </div>
-                {/* Percentage & exact circle matching the screenshot */}
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-[#6366f1] font-bold text-sm tracking-tight leading-none">{Math.round((nightDone / nightHabitsList.length) * 100) || 0}%</span>
-                  <div className="relative w-7 h-7">
-                    <svg width="28" height="28" className="transform -rotate-90">
-                      <circle cx="14" cy="14" r="11" stroke="#1f2937" strokeWidth="2.5" fill="none" />
-                      <circle 
-                        cx="14" cy="14" r="11" 
-                        stroke="#6366f1" 
-                        strokeWidth="2.5" 
-                        fill="none" 
-                        strokeLinecap="round"
-                        strokeDasharray={2 * Math.PI * 11}
-                        strokeDashoffset={2 * Math.PI * 11 - (nightDone / nightHabitsList.length) * 2 * Math.PI * 11}
-                        className="transition-all duration-700"
-                      />
-                    </svg>
-                  </div>
-                </div>
-            </div>
-
-            {/* Horizontal Progress Bar */}
-            <div className="w-full h-2 bg-[#1e293b] rounded-full overflow-hidden mb-6">
-              <div 
-                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-700 rounded-full"
-                style={{ width: `${(nightDone / nightHabitsList.length) * 100}%` }}
-              />
-            </div>
-
-            {/* Night habits — 2x3 grid */}
-            <div className="grid grid-cols-2 gap-3 pb-2">
-                {nightHabitsList.map(item => {
-                  const isDone = data.nightHabits[item.key];
-                  return (
-                    <button 
-                      key={item.key}
-                      onClick={() => toggleNightHabit(item.key)}
-                      className={`flex flex-col justify-between p-5 rounded-[2rem] transition-all duration-300 text-left min-h-[140px]
-                        ${isDone 
-                          ? `${item.theme.bg} border-transparent scale-[1.02] shadow-[0_0_20px_rgba(0,0,0,0.15)] z-10` 
-                          : 'bg-[#151518] hover:bg-[#1a1a1f] border border-transparent hover:border-slate-800/80 shadow-none'}`}
-                    >
-                      {/* Top icons row */}
-                      <div className="flex items-start justify-between w-full mb-4">
-                        <div className={`p-2.5 rounded-2xl flex items-center justify-center transition-colors
-                          ${isDone ? `bg-white/90 ${item.theme.icon}` : 'bg-[#1e1e24] ' + item.color}`}>
-                           {item.icon}
-                        </div>
-                        <div className="pt-1 pr-1">
-                           {isDone 
-                             ? <CheckCircle2 className={`w-7 h-7 text-white ${item.theme.fill}`} strokeWidth={2} /> 
-                             : <Circle className="w-7 h-7 text-slate-700 stroke-[1.5]" />}
-                        </div>
-                      </div>
-
-                      {/* Text content */}
-                      <div className="mt-auto">
-                        <h4 className={`font-bold text-[15px] leading-snug mb-0.5 transition-colors ${isDone ? item.theme.text : 'text-slate-200'}`}>
-                          {item.label}
-                        </h4>
-                        <p className={`text-xs font-medium transition-colors ${isDone ? item.theme.sub : 'text-slate-500'}`}>
-                          {item.subLabel}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-            </div>
-            
-            {/* Victory message */}
-            {nightDone === nightHabitsList.length && (
-                <div className="mt-6 p-5 bg-white rounded-[2rem] flex flex-col items-center justify-center animate-bounce shadow-xl shadow-white/5 border border-slate-100">
-                    <Sparkles className="w-8 h-8 text-[#30338F] mb-1" />
-                    <p className="text-[#30338F] font-bold text-[17px] text-center leading-tight">¡Cierre perfecto! Mañana será<br/>un gran día 🌟</p>
-                </div>
-            )}
-          </div>
-        </div>
-
-        {/* ═══════════════════════════════════════
-            SIDEBAR COLUMN (1/3)
-           ═══════════════════════════════════════ */}
-        <div className="space-y-8">
           {/* ─── Manifesto Quote (improved) ─── */}
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-[2.5rem] text-white relative overflow-hidden group">
             <div className="absolute top-4 right-8 text-8xl text-white/5 font-serif italic pointer-events-none group-hover:text-white/10 transition-all duration-700">"</div>
@@ -1160,6 +1272,7 @@ const DashboardTab = () => {
               </Button>
           </div>
       </Modal>
+      </div>
     </div>
   );
 };

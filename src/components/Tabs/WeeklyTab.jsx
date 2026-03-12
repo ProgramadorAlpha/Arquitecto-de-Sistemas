@@ -112,7 +112,7 @@ const WeeklyTab = () => {
       ) : (
         <>
           {/* Ritual Section */}
-          <div className="bg-gradient-to-br from-indigo-900 to-slate-900 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
+          <div className="bg-gradient-to-br from-indigo-600 to-indigo-900 dark:from-indigo-950 dark:to-slate-950 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
             <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl"></div>
             
             <div className="flex items-center gap-4 mb-8">
