@@ -30,7 +30,7 @@ export const AppProvider = ({ children }) => {
     reading: null,
     settings: {
       api_key: '',
-      ai_model: 'gemini-2.0-flash',
+      ai_model: 'gemini-2.5-flash',
       user_name: '',
     }
   });
@@ -109,10 +109,15 @@ export const AppProvider = ({ children }) => {
     await setDoc(doc(db, 'users', user.uid, 'settings', 'config'), newSettings, { merge: true });
   }, [user, data.settings]);
 
+  const callAI = useCallback(async (prompt, system) => {
+    return callGeminiAI(prompt, system, data.settings.ai_model, data.settings.api_key);
+  }, [data.settings.ai_model, data.settings.api_key]);
+
   const actions = {
     toggleHabit,
     toggleTheme,
     updateSetting,
+    callAI
   };
 
   return (

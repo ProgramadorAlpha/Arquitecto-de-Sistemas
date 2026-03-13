@@ -16,12 +16,14 @@ import {
 import { collection, onSnapshot, query, addDoc, deleteDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { useAppContext } from '../../context/AppContext';
 import { callGeminiAI, parseAIJSON } from '../../services/ai';
 import Card from '../UI/Card';
 import Button from '../UI/Button';
 
 const SystemsTab = () => {
   const { user } = useAuth();
+  const { actions } = useAppContext();
   const [systems, setSystems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -67,7 +69,7 @@ const SystemsTab = () => {
             "plan_b": "Estrategia de respaldo"
         }`;
 
-        const res = await callGeminiAI(prompt, "Eres un arquitecto de hábitos estricto. Respondes solo con JSON puro.");
+        const res = await actions.callAI(prompt, "Eres un arquitecto de hábitos estricto. Respondes solo con JSON puro.");
         const sys = parseAIJSON(res);
 
         setFormData(prev => ({

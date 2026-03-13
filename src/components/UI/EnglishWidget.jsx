@@ -22,7 +22,7 @@ const speak = (text) => {
    PHASE: COMPLETED (already done today)
 ════════════════════════════════════════════════ */
 const CompletedView = ({ score, total }) => (
-  <div className="bg-gradient-to-br from-emerald-900/30 to-teal-900/20 p-8 rounded-[2.5rem] border border-emerald-500/20 shadow-xl">
+  <div className="widget-card widget-card--emerald !bg-gradient-to-br !from-surface-raised !to-surface-base h-full flex flex-col items-center justify-center text-center">
     <div className="flex items-center gap-3 mb-6">
       <div className="bg-emerald-500/20 p-3 rounded-2xl">
         <GraduationCap className="w-6 h-6 text-emerald-400" />
@@ -71,7 +71,7 @@ const FlashcardPhase = ({ words, onStartQuiz }) => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-900 to-slate-950 p-7 rounded-[2.5rem] border border-slate-800/50 shadow-xl">
+    <div className="widget-card widget-card--violet !p-7 h-full">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
@@ -96,7 +96,7 @@ const FlashcardPhase = ({ words, onStartQuiz }) => {
       </div>
 
       {/* 3D Flip Card */}
-      <div className="mb-5" style={{ perspective: '1200px', height: '210px' }}>
+      <div className="mb-5" style={{ perspective: '1200px', height: '230px' }}>
         <div
           onClick={flip}
           className="cursor-pointer relative w-full h-full transition-transform duration-500"
@@ -107,7 +107,7 @@ const FlashcardPhase = ({ words, onStartQuiz }) => {
         >
           {/* FRONT */}
           <div
-            className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800/70 rounded-[2rem] border border-slate-700/50 p-7 text-center"
+            className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800/70 rounded-[2rem] border border-slate-700/50 p-6 text-center overflow-hidden"
             style={{ backfaceVisibility: 'hidden' }}
           >
             <div className="flex gap-2 mb-3">
@@ -126,11 +126,11 @@ const FlashcardPhase = ({ words, onStartQuiz }) => {
 
           {/* BACK */}
           <div
-            className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900/40 to-purple-900/20 rounded-[2rem] border border-indigo-500/30 p-7 text-center"
+            className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900/40 to-purple-900/20 rounded-[2rem] border border-indigo-500/30 p-6 text-center overflow-hidden"
             style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
           >
-            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Traducción</p>
-            <p className="text-2xl font-black text-white mb-3">{word.translation}</p>
+            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Traducción</p>
+            <p className={`${word.translation.length > 15 ? 'text-xl' : 'text-3xl'} font-black text-white mb-2 leading-tight tracking-tighter`}>{word.translation}</p>
             {word.meaning && (
               <p className="text-slate-400 text-[13px] mb-3 leading-relaxed">{word.meaning}</p>
             )}
@@ -227,7 +227,7 @@ const QuizPhase = ({ words, onFinish }) => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-900 to-slate-950 p-7 rounded-[2.5rem] border border-slate-800/50 shadow-xl">
+    <div className="widget-card widget-card--violet !p-7 h-full">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
@@ -327,7 +327,7 @@ const ResultsPhase = ({ score, total, answers, words, onComplete, onRestart }) =
                   :             'border-amber-400 bg-amber-500/10 text-amber-400';
 
   return (
-    <div className="bg-gradient-to-br from-slate-900 to-slate-950 p-7 rounded-[2.5rem] border border-slate-800/50 shadow-xl">
+    <div className="widget-card widget-card--emerald !p-7 h-full overflow-y-auto custom-scrollbar">
       {/* Header */}
       <div className="flex items-center gap-3 mb-7">
         <div className="bg-indigo-500/20 p-2.5 rounded-2xl">

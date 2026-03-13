@@ -8,7 +8,7 @@ const TopBar = ({
   const today = new Date().toLocaleDateString('es-ES', dateOptions);
 
   return (
-    <header className="h-20 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800/50 flex items-center justify-between px-4 md:px-8 sticky top-0 z-30 transition-colors">
+    <header className="topbar">
       
       <div className="flex items-center gap-4">
         {/* Mobile Menu Button */}

@@ -14,6 +14,7 @@ import {
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { useAppContext } from '../../context/AppContext';
 import { getWeekId, formatWeekLabel } from '../../utils/dateUtils';
 import { callGeminiAI } from '../../services/ai';
 import Card from '../UI/Card';
@@ -21,6 +22,7 @@ import Button from '../UI/Button';
 
 const WeeklyTab = () => {
   const { user } = useAuth();
+  const { actions } = useAppContext();
   const [offset, setOffset] = useState(0);
   const [data, setData] = useState({
     checklist: {},
@@ -75,7 +77,7 @@ const WeeklyTab = () => {
     setIsGenerating(true);
     try {
       const prompt = `Actúa como Project Manager experto. Tengo esta tarea prioritaria: "${data.priority_1}". Desglósala en 3 pasos accionables y concretos para empezar ya.`;
-      const res = await callGeminiAI(prompt, "Eres un asistente de ejecución estratégico.");
+      const res = await actions.callAI(prompt, "Eres un asistente de ejecución estratégico.");
       setSuggestion(res);
     } catch (err) {
       console.error(err);

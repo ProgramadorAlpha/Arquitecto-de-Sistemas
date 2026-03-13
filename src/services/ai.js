@@ -1,9 +1,9 @@
-export const callGeminiAI = async (prompt, systemInstruction = "Eres un asistente experto en productividad y relaciones.", modelOverride = null) => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    const model = modelOverride || 'gemini-2.5-flash'; // GA model with free tier — v1beta required
+export const callGeminiAI = async (prompt, systemInstruction = "Eres un asistente experto en productividad y relaciones.", modelOverride = null, apiKeyOverride = null) => {
+    const apiKey = apiKeyOverride || import.meta.env.VITE_GEMINI_API_KEY;
+    const model = modelOverride || 'gemini-2.0-flash'; 
     
     if (!apiKey) {
-        throw new Error("API Key de Gemini no configurada. Añade VITE_GEMINI_API_KEY en tu .env");
+        throw new Error("API Key de Gemini no configurada. Por favor, añádela en la sección de Configuración.");
     }
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -32,6 +32,8 @@ export const callGeminiAI = async (prompt, systemInstruction = "Eres un asistent
         const data = await res.json();
 
         if (data.error) throw new Error(data.error.message);
+        if (!data.candidates || data.candidates.length === 0) throw new Error("No se ha generado contenido. Comprueba tu cuota o la configuración del modelo.");
+        
         return data.candidates[0].content.parts[0].text;
     } catch (error) {
         console.error("AI Error:", error);
@@ -90,23 +92,79 @@ export const parseAIJSON = (text) => {
     throw err;
 };
 
-export const generateEnglishWords = async () => {
-    const prompt = `Genera EXACTAMENTE 5 palabras/frases de vocabulario avanzado (nivel B2/C1/C2) de Business English. 
-    Incluye una mezcla de: verbos, sustantivos, phrasal verbs e idioms.
-    Formato JSON (solo el array, sin texto extra):
-    [
-      {
-        "word": "palabra o frase en inglés",
-        "phonetic": "/transcripción IPA/",
-        "pronunciation": "pronunciación figurada para hispanohablantes",
-        "translation": "Traducción directa al español",
-        "meaning": "Definición corta en español (máx 15 palabras)",
-        "example": "Ejemplo de uso en contexto de negocios (en inglés, máx 12 palabras)",
-        "level": "B2|C1|C2",
-        "category": "Verb|Noun|Phrasal|Idiom|Adj"
-      }
-    ]`;
-    const system = "Eres un profesor experto en Business English y vocabulario ejecutivo. Responde ÚNICAMENTE con el array JSON válido, sin markdown ni texto adicional.";
-    const response = await callGeminiAI(prompt, system);
-    return parseAIJSON(response);
+export const generateEnglishWords = async (model = null, apiKey = null) => {
+    try {
+        const prompt = `Genera EXACTAMENTE 5 palabras/frases de vocabulario avanzado (nivel B2/C1/C2) de Business English. 
+        Incluye una mezcla de: verbos, sustantivos, phrasal verbs e idioms.
+        Formato JSON (solo el array, sin texto extra):
+        [
+          {
+            "word": "palabra o frase en inglés",
+            "phonetic": "/transcripción IPA/",
+            "pronunciation": "pronunciación figurada para hispanohablantes",
+            "translation": "Traducción directa al español",
+            "meaning": "Definición corta en español (máx 15 palabras)",
+            "example": "Ejemplo de uso en contexto de negocios (en inglés, máx 12 palabras)",
+            "level": "B2|C1|C2",
+            "category": "Verb|Noun|Phrasal|Idiom|Adj"
+          }
+        ]`;
+        const system = "Eres un profesor experto en Business English y vocabulario ejecutivo. Responde ÚNICAMENTE con el array JSON válido, sin markdown ni texto adicional.";
+        const response = await callGeminiAI(prompt, system, model, apiKey);
+        return parseAIJSON(response);
+    } catch (error) {
+        console.error("AI Error generating English words (using fallback):", error);
+        return [
+            {
+                "word": "Leverage",
+                "phonetic": "/ˈlɛvərɪdʒ/",
+                "pronunciation": "le-ve-rech",
+                "translation": "Apalancar / Aprovechar",
+                "meaning": "Usar algo al máximo para lograr una ventaja o resultado óptimo.",
+                "example": "We need to leverage our existing resources to win this project.",
+                "level": "C1",
+                "category": "Verb"
+            },
+            {
+                "word": "Bottleneck",
+                "phonetic": "/ˈbɒtlnɛk/",
+                "pronunciation": "bo-tl-nek",
+                "translation": "Cuello de botella",
+                "meaning": "Punto de congestión en un proceso que retrasa el flujo general.",
+                "example": "The design approval process is currently the main bottleneck.",
+                "level": "B2",
+                "category": "Noun"
+            },
+            {
+                "word": "Think outside the box",
+                "phonetic": "/θɪŋk ˌaʊtˈsaɪd ðə bɒks/",
+                "pronunciation": "zink aut-said de boks",
+                "translation": "Pensar de forma creativa",
+                "meaning": "Idear soluciones originales y no convencionales a problemas o situaciones.",
+                "example": "To solve this crisis, the team must think outside the box.",
+                "level": "B2",
+                "category": "Idiom"
+            },
+            {
+                "word": "Pivot",
+                "phonetic": "/ˈpɪvət/",
+                "pronunciation": "pí-vot",
+                "translation": "Pivotar / Cambiar de estrategia",
+                "meaning": "Cambiar la dirección estratégica del negocio para adaptarse al mercado.",
+                "example": "The startup had to pivot when their initial product failed.",
+                "level": "C1",
+                "category": "Verb"
+            },
+            {
+                "word": "Follow up",
+                "phonetic": "/ˈfɒləʊ ʌp/",
+                "pronunciation": "fo-lou ap",
+                "translation": "Hacer seguimiento",
+                "meaning": "Acción continua sobre un tema para asegurar que se complete o resuelva.",
+                "example": "Please follow up with the client regarding the contract status.",
+                "level": "B2",
+                "category": "Phrasal verb"
+            }
+        ];
+    }
 };

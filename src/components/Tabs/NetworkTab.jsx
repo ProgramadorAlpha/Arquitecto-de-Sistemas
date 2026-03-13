@@ -18,6 +18,7 @@ import {
 import { collection, query, onSnapshot, doc, setDoc, addDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { useAppContext } from '../../context/AppContext';
 import { callGeminiAI, parseAIJSON } from '../../services/ai';
 import Card from '../UI/Card';
 import Button from '../UI/Button';
@@ -25,6 +26,7 @@ import Modal from '../UI/Modal';
 
 const NetworkTab = () => {
   const { user } = useAuth();
+  const { actions } = useAppContext();
   const [network, setNetwork] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -147,7 +149,7 @@ const NetworkTab = () => {
     Responde SOLO con el JSON válido.`;
 
     try {
-      const resText = await callGeminiAI(prompt, "Eres un coach experto en relaciones interpersonales y comunicación efectiva.");
+      const resText = await actions.callAI(prompt, "Eres un coach experto en relaciones interpersonales y comunicación efectiva.");
       const advice = parseAIJSON(resText);
       setAdviceData(advice);
     } catch (err) {

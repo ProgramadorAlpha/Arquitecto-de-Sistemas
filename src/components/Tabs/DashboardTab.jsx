@@ -29,7 +29,8 @@ import {
   Leaf,
   MonitorOff,
   Briefcase,
-  Heart
+  Heart,
+  Activity
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { doc, onSnapshot, setDoc, updateDoc, collection, query, getDocs } from 'firebase/firestore';
@@ -77,8 +78,8 @@ const CircularProgress = ({ percentage, size = 120, strokeWidth = 10 }) => {
         />
         <defs>
           <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#136dec" />
-            <stop offset="100%" stopColor="#8b5cf6" />
+            <stop offset="0%" stopColor="var(--accent)" />
+            <stop offset="100%" stopColor="var(--purple)" />
           </linearGradient>
         </defs>
       </svg>
@@ -112,7 +113,7 @@ const EnergySlider = ({ value, onChange }) => {
           onChange={(e) => onChange(parseInt(e.target.value))}
           className="w-full h-2 rounded-full appearance-none cursor-pointer energy-slider"
           style={{
-            background: `linear-gradient(to right, #136dec 0%, #8b5cf6 ${gradientPercent}%, #1e293b ${gradientPercent}%)`
+            background: `linear-gradient(to right, var(--accent) 0%, var(--purple) ${gradientPercent}%, var(--surface-border) ${gradientPercent}%)`
           }}
         />
         <div className="flex justify-between mt-1">
@@ -158,6 +159,7 @@ const DashboardTab = () => {
   const weekId = getWeekId(0);
   // Mutex to prevent parallel Gemini calls on rapid onSnapshot events
   const isGeneratingEnglishRef = useRef(false);
+  const settingsRef = useRef({});
 
   useEffect(() => {
     if (!user) return;
@@ -190,7 +192,8 @@ const DashboardTab = () => {
           if (isGeneratingEnglishRef.current) return; // mutex guard
           isGeneratingEnglishRef.current = true;
           try {
-            const words = await generateEnglishWords();
+            const { ai_model, api_key } = settingsRef.current;
+            const words = await generateEnglishWords(ai_model, api_key);
             await setDoc(doc(db, 'users', user.uid, 'daily_content', today), {
               englishWords: words,
               englishCompleted: false,
@@ -232,6 +235,7 @@ const DashboardTab = () => {
       onSnapshot(doc(db, 'users', user.uid, 'settings', 'config'), (d) => {
         if (d.exists()) {
             const s = d.data();
+            settingsRef.current = s;
             setSettings(s);
             setData(prev => ({ 
                 ...prev, 
@@ -532,22 +536,7 @@ const DashboardTab = () => {
             <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
             Progreso del Día
           </p>
-          <div className="hidden lg:flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-xl font-black text-xs uppercase tracking-wider border border-orange-500/20">
-                 <span className="text-sm">🔥</span> {streakCount} {streakCount === 1 ? 'DÍA' : 'DÍAS'}
-              </div>
-              <button
-                onClick={togglePlanB}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 transition-all duration-500 ${
-                  settings.planB
-                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-amber-500/20'
-                    : 'bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800'
-                }`}
-              >
-                {settings.planB ? <ShieldAlert className="w-4 h-4 animate-pulse" /> : <Shield className="w-4 h-4" />}
-                <span className="text-[10px] font-black uppercase tracking-widest">{settings.planB ? 'Plan B' : 'Plan B Off'}</span>
-              </button>
-          </div>
+
         </div>
 
         {/* ── ROW 1: Progreso + info ── */}
@@ -557,10 +546,7 @@ const DashboardTab = () => {
           <div className="flex-1 flex flex-col gap-5">
             {/* Chips — distribuidos en todo el ancho */}
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 bg-amber-500/10 px-4 py-2.5 rounded-[1.2rem] border border-amber-500/20 shadow-sm flex-1 justify-center">
-                <Flame className="w-4 h-4 text-amber-500 shrink-0" />
-                <span className="text-xs font-black text-amber-500 uppercase tracking-wider">{data.streak} DÍAS</span>
-              </div>
+
               <div className="flex items-center gap-2 bg-blue-500/10 px-4 py-2.5 rounded-[1.2rem] border border-blue-500/20 shadow-sm flex-1 justify-center">
                 <Calendar className="w-4 h-4 text-blue-400 shrink-0" />
                 <span className="text-xs font-black text-blue-300 uppercase tracking-wider">{currentMonth}</span>
@@ -632,14 +618,10 @@ const DashboardTab = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-12 gap-8">
-        {/* =======================
-            MAIN COLUMN (8/12)
-            ======================= */}
-        <div className="xl:col-span-8 flex flex-col gap-8">
+      <div className="widget-grid-3">
 
           {/* ─── 2. TESLA MORNING 3-6-9 ─── */}
-          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100 dark:border-slate-800">
+          <div className="col-span-2 order-1 widget-card widget-card--amber !p-0 overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-orange-600 to-amber-500 dark:from-orange-700 dark:to-orange-900 p-8 pb-6 text-white flex justify-between items-start overflow-hidden relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-xl"></div>
@@ -727,7 +709,7 @@ const DashboardTab = () => {
           </div>
 
           {/* ─── 5. CIERRE DE ALTO RENDIMIENTO ─── */}
-          <div className="bg-white dark:bg-[#0B0B0E] p-8 rounded-[3rem] text-slate-800 dark:text-white shadow-2xl relative border border-slate-100 dark:border-slate-800/60 transition-colors">
+          <div className="col-span-2 order-3 widget-card widget-card--violet">
             {/* Header section matching screenshot */}
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-4">
@@ -816,13 +798,11 @@ const DashboardTab = () => {
                 </div>
             )}
           </div>
-        </div>
-
         {/* =======================
-            SIDEBAR COLUMN (4/12)
+            SIDEBAR WIDGETS
             ======================= */}
-        <div className="xl:col-span-4 flex flex-col gap-8 h-full">
           {/* ─── 3. BUSINESS ENGLISH C1 ─── */}
+          <div className="col-span-1 order-4 flex flex-col h-full">
           {data.englishWords.length > 0 ? (
             <EnglishWidget
               words={data.englishWords}
@@ -849,6 +829,7 @@ const DashboardTab = () => {
               </div>
             </div>
           )}
+          </div>
 
           {/* ─── 4. JOURNAL DE ENERGÍA ─── */}
           {(() => {
@@ -871,7 +852,7 @@ const DashboardTab = () => {
             const mc = modeConfig[data.mentalState] || modeConfig[''];
 
             return (
-              <div className="bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-950 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800/50 shadow-xl relative overflow-hidden">
+              <div className="col-span-1 order-2 widget-card widget-card--amber !bg-gradient-to-br !from-surface-raised !to-surface-base h-full">
                 <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl -mr-16 -mt-16" />
                 <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl -ml-10 -mb-10" />
 
@@ -967,20 +948,19 @@ const DashboardTab = () => {
             );
           })()}
 
-          {/* ─── Manifesto Quote (improved) ─── */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-[2.5rem] text-white relative overflow-hidden group">
+          {/* ─── Mandamiento del Día (improved) ─── */}
+          <div className="col-span-1 order-9 widget-card widget-card--violet !bg-gradient-to-br !from-surface-raised !to-surface-base justify-center">
             <div className="absolute top-4 right-8 text-8xl text-white/5 font-serif italic pointer-events-none group-hover:text-white/10 transition-all duration-700">"</div>
             <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-all duration-700" />
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-400 mb-6">El Manifiesto</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-400 mb-6">Mandamiento del Día</p>
             <p className="text-xl italic font-medium leading-relaxed opacity-90 relative z-10 font-serif">
-              "{settings.manifesto || 'La inacción no es neutral; es una elección activa por la mediocridad.'}"
+               "{settings.manifesto || 'La inacción no es neutral; es una elección activa por la mediocridad.'}"
             </p>
             <div className="mt-6 w-12 h-0.5 bg-gradient-to-r from-amber-400 to-transparent rounded-full" />
           </div>
 
           {/* ─── Weekly Focus (improved) ─── */}
-          <div className="relative group">
-              <div className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
+          <div className="col-span-1 order-8 widget-card widget-card--coral relative group">
                 {/* Decorative accent */}
                 <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-red-500 to-red-600 rounded-l-full" />
                 <button 
@@ -999,11 +979,10 @@ const DashboardTab = () => {
                         {data.weeklyFocus.priority_1 || 'DEFINE TU ROCA'}
                     </p>
                 </div>
-              </div>
           </div>
 
           {/* ─── Sacred Blocks (improved with timeline) ─── */}
-          <div className="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm relative">
+          <div className="col-span-1 order-6 widget-card widget-card--zinc h-full">
             <button 
                 onClick={() => setIsSacredModalOpen(true)}
                 className="absolute top-6 right-6 p-2 bg-slate-50 dark:bg-slate-800 hover:bg-white text-slate-400 rounded-xl transition"
@@ -1043,13 +1022,7 @@ const DashboardTab = () => {
           </div>
 
           {/* ─── Reading Block (improved) ─── */}
-          <div className="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm relative">
-            <button 
-                onClick={() => setIsReadingModalOpen(true)}
-                className="absolute top-6 right-6 p-2 bg-slate-50 dark:bg-slate-800 hover:bg-white text-slate-400 rounded-xl transition"
-            >
-                <Edit2 className="w-4 h-4" />
-            </button>
+          <div className="col-span-1 order-7 widget-card widget-card--emerald h-full">
             <div className="flex items-center gap-2 mb-6">
               <BookOpen className="w-5 h-5 text-emerald-500" />
               <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tighter">Lectura Actual</h3>
@@ -1105,7 +1078,7 @@ const DashboardTab = () => {
             const now = new Date();
             const currentTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
             return (
-              <div className="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm relative">
+              <div className="col-span-1 order-5 widget-card widget-card--violet">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
                     <Clock className="w-5 h-5 text-indigo-500" />
@@ -1174,7 +1147,40 @@ const DashboardTab = () => {
             );
           })()}
 
-        </div>
+          {/* ─── Weekly Vitals Chart (New Widget) ─── */}
+          <div className="col-span-1 order-10 widget-card widget-card--emerald !bg-gradient-to-br !from-surface-raised !to-surface-base flex flex-col justify-center">
+             <div className="flex items-center gap-3 mb-6">
+               <div className="bg-emerald-500/10 p-3 rounded-2xl border border-emerald-500/20">
+                 <Activity className="w-6 h-6 text-emerald-400" />
+               </div>
+               <div>
+                 <h3 className="font-black text-white uppercase tracking-tight text-lg">Vitals Semanales</h3>
+                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tu racha y tendencia</p>
+               </div>
+             </div>
+
+             <div className="flex items-end justify-between gap-2 h-32 px-2 mt-2">
+                {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, i) => {
+                  const val = [65, 85, 45, 95, 75, 55, 90][i]; // Sample dynamic-ish values
+                  return (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-3 group">
+                      <div className="relative w-full flex flex-col justify-end h-full">
+                         <div 
+                           className="w-full bg-gradient-to-t from-emerald-600/20 to-emerald-500 rounded-t-xl rounded-b-md transition-all duration-500 group-hover:scale-x-110 group-hover:brightness-110"
+                           style={{ height: `${val}%` }}
+                         />
+                         {/* Micro-label on hover */}
+                         <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-slate-800 text-white text-[9px] font-black px-1.5 py-0.5 rounded transition-opacity whitespace-nowrap z-50">
+                            {val}%
+                         </div>
+                      </div>
+                      <span className="text-[10px] font-black text-slate-600 group-hover:text-emerald-400 transition-colors uppercase">{day}</span>
+                    </div>
+                  );
+                })}
+             </div>
+          </div>
+
       </div>
 
       {/* ═══════════════════════════════════════

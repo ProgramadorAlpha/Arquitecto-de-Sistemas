@@ -1,33 +1,37 @@
 import React from 'react';
 
-const Card = ({ children, className = '', title, icon: Icon, color = 'blue' }) => {
-  const colorClasses = {
-    blue: 'text-blue-500 bg-blue-100',
-    indigo: 'text-indigo-600 bg-indigo-100',
-    orange: 'text-orange-600 bg-orange-100',
-    red: 'text-red-600 bg-red-100',
-    green: 'text-green-600 bg-green-100',
-    emerald: 'text-emerald-500 bg-emerald-100',
-    cyan: 'text-cyan-500 bg-cyan-100',
+const Card = ({ children, className = '', title, icon: Icon, color = 'amber' }) => {
+  const variantMap = {
+    amber: 'widget-card--amber',
+    orange: 'widget-card--amber',
+    emerald: 'widget-card--emerald',
+    green: 'widget-card--emerald',
+    violet: 'widget-card--violet',
+    indigo: 'widget-card--violet',
+    blue: 'widget-card--violet',
+    red: 'widget-card--coral',
+    coral: 'widget-card--coral'
   };
 
+  const variant = variantMap[color] || '';
+
   return (
-    <div className={`bg-white dark:bg-slate-800 rounded-[2.5rem] p-6 shadow-sm border border-slate-100 dark:border-slate-700/50 relative overflow-hidden group ${className}`}>
+    <div className={`widget-card ${variant} ${className}`}>
       {(title || Icon) && (
-        <div className="flex items-center gap-3 mb-6">
-          {Icon && (
-            <div className={`p-2.5 rounded-xl ${colorClasses[color] || colorClasses.blue}`}>
-              {React.isValidElement(Icon) ? Icon : <Icon className="w-6 h-6" />}
-            </div>
-          )}
-          {title && (
-            <div>
-              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg">{title}</h3>
-            </div>
-          )}
+        <div className="widget-card__header">
+          <div className="widget-card__title">
+            {Icon && (
+              <span className="shrink-0 opacity-80">
+                {React.isValidElement(Icon) ? Icon : <Icon className="w-4 h-4" />}
+              </span>
+            )}
+            {title && <span>{title}</span>}
+          </div>
         </div>
       )}
-      {children}
+      <div className="flex-1 flex flex-col gap-3">
+        {children}
+      </div>
     </div>
   );
 };

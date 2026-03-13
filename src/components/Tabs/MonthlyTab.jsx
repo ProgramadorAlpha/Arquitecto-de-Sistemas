@@ -14,6 +14,7 @@ import {
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { useAppContext } from '../../context/AppContext';
 import { getMonthId } from '../../utils/dateUtils';
 import { callGeminiAI } from '../../services/ai';
 import Card from '../UI/Card';
@@ -21,6 +22,7 @@ import Button from '../UI/Button';
 
 const MonthlyTab = () => {
   const { user } = useAuth();
+  const { actions } = useAppContext();
   const [data, setData] = useState({
     wins: '',
     drains: '',
@@ -68,7 +70,7 @@ const MonthlyTab = () => {
     setIsGenerating(true);
     try {
       const prompt = `Basado en estas victorias: "${data.wins}" y estas fugas: "${data.drains}", sugiere una INTENCIÓN MENSUAL corta y poderosa (máximo 10 palabras). Devuelve SOLO el texto.`;
-      const res = await callGeminiAI(prompt, "Eres un coach de alto rendimiento estoico.");
+      const res = await actions.callAI(prompt, "Eres un coach de alto rendimiento estoico.");
       updateField('intention', res.trim().replace(/^"|"$/g, ''));
     } catch (err) {
         console.error(err);

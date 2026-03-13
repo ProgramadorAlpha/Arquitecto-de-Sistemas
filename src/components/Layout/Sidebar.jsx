@@ -25,9 +25,8 @@ const Sidebar = ({ activeTab, onTabChange, isMaster, currentStreak, isOpen, onCl
 
       {/* Sidebar Container */}
       <aside className={`
-        fixed md:static inset-y-0 left-0 z-50
-        w-72 bg-slate-900 flex flex-col h-full
-        transition-transform duration-300 ease-in-out shadow-2xl
+        sidebar fixed md:static inset-y-0 left-0 z-50
+        transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         {/* Header / Logo */}

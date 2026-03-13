@@ -1,0 +1,105 @@
+
+<style>
+  body { background: #0C0D10; }
+  .wrap { padding: 1rem 0; font-family: var(--font-sans); }
+  .section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7280; margin: 1.5rem 0 0.75rem; }
+  .palette-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .swatch { border-radius: 8px; height: 48px; flex: 1; min-width: 48px; display: flex; align-items: flex-end; padding: 5px 7px; }
+  .swatch span { font-size: 10px; font-weight: 500; }
+  .demo-bg { background: #0C0D10; border-radius: 14px; padding: 20px; margin-top: 8px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; align-items: stretch; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; align-items: stretch; margin-top: 12px; }
+  .card { background: #13151A; border: 1px solid #2A2D35; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .card--amber  { border-top: 2px solid #FBBF24; }
+  .card--emerald { border-top: 2px solid #34D399; }
+  .card--violet { border-top: 2px solid #A78BFA; }
+  .card--coral  { border-top: 2px solid #F87171; }
+  .card-title { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9CA3AF; }
+  .card-value { font-size: 22px; font-weight: 600; color: #F1F1F3; }
+  .card-sub { font-size: 12px; color: #6B7280; }
+  .progress-track { background: #2A2D35; height: 4px; border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+  .badge-a { background: rgba(251,191,36,0.15); color: #FCD34D; }
+  .badge-e { background: rgba(52,211,153,0.15); color: #34D399; }
+  .badge-v { background: rgba(167,139,250,0.15); color: #A78BFA; }
+  .badge-c { background: rgba(248,113,113,0.15); color: #F87171; }
+  .divider { height: 1px; background: #2A2D35; }
+  .checklist-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #9CA3AF; }
+  .check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #2A2D35; flex-shrink: 0; }
+  .check-done { background: #34D399; border-color: #34D399; display: flex; align-items: center; justify-content: center; }
+</style>
+
+<div class="wrap">
+  <div class="section-label">Paleta de color — nueva identidad</div>
+  <div class="palette-row">
+    <div class="swatch" style="background:#FBBF24"><span style="color:#78350F">Amber</span></div>
+    <div class="swatch" style="background:#D97706"><span style="color:#FDE68A">–dim</span></div>
+    <div class="swatch" style="background:#34D399"><span style="color:#064E3B">Emerald</span></div>
+    <div class="swatch" style="background:#059669"><span style="color:#D1FAE5">–dim</span></div>
+    <div class="swatch" style="background:#A78BFA"><span style="color:#4C1D95">Violet</span></div>
+    <div class="swatch" style="background:#7C3AED"><span style="color:#EDE9FE">–dim</span></div>
+    <div class="swatch" style="background:#F87171"><span style="color:#501313">Coral</span></div>
+  </div>
+  <div class="palette-row" style="margin-top:6px">
+    <div class="swatch" style="background:#0C0D10; border:1px solid #2A2D35"><span style="color:#6B7280">Base</span></div>
+    <div class="swatch" style="background:#13151A; border:1px solid #2A2D35"><span style="color:#6B7280">Raised</span></div>
+    <div class="swatch" style="background:#1A1D24; border:1px solid #2A2D35"><span style="color:#9CA3AF">Overlay</span></div>
+    <div class="swatch" style="background:#2A2D35"><span style="color:#9CA3AF">Border</span></div>
+    <div class="swatch" style="background:#F1F1F3"><span style="color:#27272A">Text 1°</span></div>
+    <div class="swatch" style="background:#9CA3AF"><span style="color:#18181B">Text 2°</span></div>
+    <div class="swatch" style="background:#6B7280"><span style="color:#F4F4F5">Text 3°</span></div>
+  </div>
+
+  <div class="section-label" style="margin-top:2rem">Grid corregido — demo en vivo</div>
+  <div class="demo-bg">
+    <div class="grid-3">
+      <div class="card card--amber">
+        <div class="card-title">Horario de hoy</div>
+        <div class="card-value">3</div>
+        <div class="card-sub">eventos programados</div>
+        <div class="progress-track"><div class="progress-fill" style="width:60%;background:#FBBF24"></div></div>
+        <span class="badge badge-a">En curso</span>
+      </div>
+      <div class="card card--emerald">
+        <div class="card-title">Bloques sagrados</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="checklist-item">
+            <div class="check check-done"><svg width="10" height="10" viewBox="0 0 10 10"><polyline points="2,5 4,7 8,3" fill="none" stroke="#064E3B" stroke-width="1.5"/></svg></div>
+            Deep GymWork
+          </div>
+          <div class="checklist-item">
+            <div class="check"></div>
+            Lectura 30min
+          </div>
+        </div>
+        <span class="badge badge-e">1 / 2</span>
+      </div>
+      <div class="card card--violet">
+        <div class="card-title">Lectura actual</div>
+        <div class="card-value" style="font-size:15px;color:#F1F1F3">Añadir libro</div>
+        <div style="display:flex;gap:4px">
+          <span style="width:24px;height:24px;border-radius:6px;background:#1A1D24;display:flex;align-items:center;justify-content:center;font-size:10px;color:#6B7280">L</span>
+          <span style="width:24px;height:24px;border-radius:6px;background:#A78BFA22;display:flex;align-items:center;justify-content:center;font-size:10px;color:#A78BFA;font-weight:600">V</span>
+          <span style="width:24px;height:24px;border-radius:6px;background:#1A1D24;display:flex;align-items:center;justify-content:center;font-size:10px;color:#6B7280">S</span>
+          <span style="width:24px;height:24px;border-radius:6px;background:#1A1D24;display:flex;align-items:center;justify-content:center;font-size:10px;color:#6B7280">D</span>
+        </div>
+        <span class="badge badge-v">En progreso</span>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card--coral">
+        <div class="card-title">Foco semanal #1</div>
+        <div class="card-value" style="font-size:16px;color:#F87171">Define tu roca</div>
+        <div class="divider"></div>
+        <div class="card-sub">Sin definir — toca para editar</div>
+      </div>
+      <div class="card" style="border-left:2px solid #A78BFA;background:#13151A">
+        <div class="card-title" style="color:#A78BFA">El manifiesto</div>
+        <div style="font-size:14px;color:#F1F1F3;font-style:italic;line-height:1.6">"La inacción no es neutral; es una elección activa por la mediocridad."</div>
+        <div style="width:32px;height:2px;background:#FBBF24;border-radius:99px"></div>
+      </div>
+    </div>
+  </div>
+</div>

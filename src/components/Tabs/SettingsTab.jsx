@@ -66,12 +66,12 @@ const SettingsTab = ({ settings, onUpdate }) => {
                 <div>
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1">Modelo de IA</label>
                     <select 
-                        value={settings.ai_model || 'gemini-2.0-flash'}
+                        value={settings.ai_model || 'gemini-2.5-flash'}
                         onChange={(e) => onUpdate('ai_model', e.target.value)}
                         className="w-full p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700 text-slate-800 dark:text-white font-bold text-sm focus:ring-2 focus:ring-purple-500 outline-none appearance-none"
                     >
-                        <option value="gemini-2.0-flash">Gemini 2.0 Flash (Más rápido)</option>
-                        <option value="gemini-1.5-pro">Gemini 1.5 Pro (Más inteligente)</option>
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash (Más eficiente)</option>
+                        <option value="gemini-3.1-flash">Gemini 3.1 Flash (Máximo rendimiento)</option>
                     </select>
                 </div>
 

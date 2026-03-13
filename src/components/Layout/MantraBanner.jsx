@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, RefreshCw } from 'lucide-react';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { useAppContext } from '../../context/AppContext';
 import { callGeminiAI } from '../../services/ai';
 
 const MantraBanner = () => {
   const { user } = useAuth();
+  const { actions } = useAppContext();
   const [mantra, setMantra] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -29,10 +31,11 @@ const MantraBanner = () => {
     return unsub;
   }, [user, today]);
 
-  const generateMantra = async () => {
+  const generateMantra = async (force = false) => {
+    setLoading(true);
     try {
-      const prompt = "Genera un mantra estoico y poderoso para el día de hoy (máximo 15 palabras). Que inspire acción masiva y claridad mental. Devuelve SOLO el texto.";
-      const res = await callGeminiAI(prompt, "Eres un filósofo estoico de alto rendimiento.");
+      const prompt = `Genera un mantra estoico, brutalmente honesto y poderoso para un arquitecto de sistemas de alto rendimiento para el día de hoy (${today}). Máximo 15 palabras. Que inspire disciplina férrea y foco láser. Devuelve SOLO el texto, sin comillas adicionales. Variación: ${Math.random()}`;
+      const res = await actions.callAI(prompt, "Eres una IA de mentalidad de acero diseñada para forjar la disciplina de un guerrero moderno.");
       if (res) {
           await setDoc(doc(db, 'daily_content', today), { mantra: res.trim() }, { merge: true });
       }
@@ -63,9 +66,19 @@ const MantraBanner = () => {
             <Sparkles className="text-blue-500 w-8 h-8 fill-blue-50" />
          </div>
          <div className="flex-1 text-center md:text-left">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500/60 mb-2">Mantra del Guerrero</p>
-            <p className="text-slate-800 dark:text-slate-100 font-serif italic text-2xl leading-relaxed tracking-tight">
-               "{mantra}"
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500/60 mb-2 flex items-center justify-center md:justify-start gap-3">
+               Mantra del Guerrero
+               <button 
+                 onClick={() => generateMantra(true)}
+                 disabled={loading}
+                 className="hover:rotate-180 transition-transform duration-500 p-1 rounded-md hover:bg-blue-500/10"
+                 title="Generar nuevo mantra"
+               >
+                 <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+               </button>
+            </p>
+            <p className="text-slate-800 dark:text-slate-100 font-serif italic text-2xl leading-relaxed tracking-tight group-hover:scale-[1.01] transition-transform duration-500">
+               "{mantra || 'La disciplina es libertad.'}"
             </p>
          </div>
       </div>
