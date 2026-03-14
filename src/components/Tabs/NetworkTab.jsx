@@ -159,6 +159,24 @@ const NetworkTab = () => {
     }
   };
 
+  const [expansionStrategy, setExpansionStrategy] = useState(null);
+  const [isGeneratingExpansion, setIsGeneratingExpansion] = useState(false);
+
+  const handleGenerateExpansion = async () => {
+    setIsGeneratingExpansion(true);
+    try {
+        const prompt = `Analiza mi red actual de ${activeMembers.length} miembros y mis ${candidates.length} candidatos. Genera una ESTRATEGIA DE EXPANSIÓN DE RED (Tribu) para este mes.
+        OBJETIVO: Elevar el nivel promedio de mis relaciones y encontrar mentores o aliados estratégicos.
+        Dime una sola frase brutalmente honesta y accionable sobre a quién debo buscar o cómo debo filtrar a mis candidatos.`;
+        const res = await actions.callAI(prompt, "Eres un estratega de redes de alto nivel (Mastermind Architect).");
+        setExpansionStrategy(res.trim());
+    } catch (err) {
+        console.error(err);
+    } finally {
+        setIsGeneratingExpansion(false);
+    }
+  };
+
   const copyAdvice = () => {
     if (!adviceData) return;
     const text = `Consejo: ${adviceData.consejo}\nTema: ${adviceData.tema}\nPregunta: ${adviceData.pregunta}`;
@@ -312,14 +330,17 @@ const NetworkTab = () => {
                     <span className="font-black uppercase text-xs tracking-widest">Añadir Candidato a la Tribu</span>
                 </button>
 
-                <div className="p-6 bg-amber-50/50 dark:bg-amber-900/10 rounded-3xl border border-amber-100 dark:border-amber-900/30 flex items-start gap-4">
+                <div className="p-6 bg-amber-50/50 dark:bg-amber-900/10 rounded-3xl border border-amber-100 dark:border-amber-900/30 flex items-start gap-4 flex-1">
                     <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-amber-500">
-                        <Lightbulb className="w-5 h-5 fill-amber-100 dark:fill-amber-900/50" />
+                        {isGeneratingExpansion ? <Loader2 className="w-5 h-5 animate-spin" /> : <Lightbulb className="w-5 h-5 fill-amber-100 dark:fill-amber-900/50" onClick={handleGenerateExpansion} style={{cursor: 'pointer'}} />}
                     </div>
-                    <div>
-                        <h4 className="text-[10px] font-black uppercase text-amber-600 tracking-widest mb-1">Estrategia de Expansión</h4>
+                    <div className="flex-1">
+                        <div className="flex justify-between items-center mb-1">
+                            <h4 className="text-[10px] font-black uppercase text-amber-600 tracking-widest">Estrategia de Expansión</h4>
+                            <button onClick={handleGenerateExpansion} className="text-[8px] font-bold text-amber-700 underline uppercase tracking-tighter">Regenerar con IA</button>
+                        </div>
                         <p className="text-sm font-bold text-slate-700 dark:text-slate-200 italic leading-snug opacity-80">
-                            IA: "Busca emprendedores en sectores complementarios a tu visión 2026."
+                            IA: "{expansionStrategy || "Pulsa en la bombilla para generar una estrategia de expansión basada en tu red actual."}"
                         </p>
                     </div>
                 </div>

@@ -192,8 +192,7 @@ const DashboardTab = () => {
           if (isGeneratingEnglishRef.current) return; // mutex guard
           isGeneratingEnglishRef.current = true;
           try {
-            const { ai_model, api_key } = settingsRef.current;
-            const words = await generateEnglishWords(ai_model, api_key);
+            const words = await generateEnglishWords();
             await setDoc(doc(db, 'users', user.uid, 'daily_content', today), {
               englishWords: words,
               englishCompleted: false,
@@ -522,6 +521,7 @@ const DashboardTab = () => {
           </div>
         </div>
 
+
       {/* ═══════════════════════════════════════════
           1. TOP BANNER — Circular Progress + Chips
          ═══════════════════════════════════════════ */}
@@ -621,9 +621,9 @@ const DashboardTab = () => {
       <div className="widget-grid-3">
 
           {/* ─── 2. TESLA MORNING 3-6-9 ─── */}
-          <div className="col-span-2 order-1 widget-card widget-card--amber !p-0 overflow-hidden">
+          <div className="col-span-1 md:col-span-2 order-1 widget-card widget-card--amber !p-0 overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-orange-600 to-amber-500 dark:from-orange-700 dark:to-orange-900 p-8 pb-6 text-white flex justify-between items-start overflow-hidden relative">
+            <div className="bg-gradient-to-r from-orange-600 to-amber-500 dark:from-orange-700 dark:to-orange-900 p-6 md:p-8 pb-4 md:pb-6 text-white flex justify-between items-start overflow-hidden relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-xl"></div>
               <div>
                 <h3 className="text-3xl font-black tracking-tight leading-none mb-1">Tesla Morning</h3>
@@ -726,7 +726,7 @@ const DashboardTab = () => {
                   <span className="text-[#6366f1] font-bold text-sm tracking-tight leading-none">{Math.round((nightDone / nightHabitsList.length) * 100) || 0}%</span>
                   <div className="relative w-7 h-7">
                     <svg width="28" height="28" className="transform -rotate-90">
-                      <circle cx="14" cy="14" r="11" stroke="#1f2937" strokeWidth="2.5" fill="none" />
+                      <circle cx="14" cy="14" r="11" stroke="#1f293b" strokeWidth="2.5" fill="none" />
                       <circle 
                         cx="14" cy="14" r="11" 
                         stroke="#6366f1" 

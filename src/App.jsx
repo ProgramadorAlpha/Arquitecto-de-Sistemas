@@ -3,6 +3,8 @@ import { useAuth } from './context/AuthContext';
 import { useAppContext } from './context/AppContext';
 import Sidebar from './components/Layout/Sidebar';
 import TopBar from './components/Layout/TopBar';
+import { useSidebar } from './hooks/useSidebar';
+
 import DashboardTab from './components/Tabs/DashboardTab';
 import WeeklyTab from './components/Tabs/WeeklyTab';
 import MonthlyTab from './components/Tabs/MonthlyTab';
@@ -22,7 +24,8 @@ function App() {
   const { user, logout } = useAuth();
   const { data, actions, isDark } = useAppContext();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isOpen: isSidebarOpen, toggle: toggleSidebar, close: closeSidebar } = useSidebar();
+
   const [isBrainDumpOpen, setIsBrainDumpOpen] = useState(false);
   const [isManifestoOpen, setIsManifestoOpen] = useState(false);
   const [quickNote, setQuickNote] = useState('');
@@ -69,36 +72,43 @@ function App() {
   };
 
   return (
-    <div className={`flex h-screen w-full overflow-hidden ${isDark ? 'dark bg-slate-950' : 'bg-slate-50'} transition-colors duration-300`}>
-      
-      {/* Sidebar - Desktop Fixed, Mobile Drawer */}
+    <div className={`app-shell ${isDark ? 'dark' : ''}`}>
+      {/* Overlay para móvil */}
+      <div 
+        className={`sidebar-overlay ${isSidebarOpen ? 'sidebar-overlay--open' : ''}`} 
+        onClick={closeSidebar} 
+      />
+
+      {/* Sidebar - Ahora manejado con clases CSS del sistema responsive */}
       <Sidebar 
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
         isMaster={user?.email === 'josegr1.8@gmail.com'}
         currentStreak={data.streak}
         isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
+        onClose={closeSidebar}
+        onLogout={logout}
       />
 
-      {/* Main Container */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
+      {/* Main Content Area */}
+      <div className={`main-content ${isDark ? 'bg-slate-950' : 'bg-slate-50'} transition-colors duration-300`}>
         <TopBar 
           user={user} 
           onLogout={logout} 
           toggleTheme={actions.toggleTheme}
           isDark={isDark}
           openManifesto={() => setIsManifestoOpen(true)}
-          onOpenSidebar={() => setIsSidebarOpen(true)}
+          onOpenSidebar={toggleSidebar}
         />
 
-        <main className="flex-1 overflow-y-auto relative z-10 custom-scrollbar">
+        <main className="relative z-10 custom-scrollbar">
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 pb-32">
             <MantraBanner />
             {renderTabContent()}
           </div>
         </main>
       </div>
+
 
       {/* Floating Action Button (Vaciado Mental) */}
       <button 

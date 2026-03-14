@@ -12,8 +12,8 @@ const Header = ({ user, onLogout, toggleTheme, isDark, openManifesto, mantraSubt
         <div className="flex justify-between items-start mb-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Shield className="text-blue-400 w-6 h-6" />
-              <h1 className="text-3xl font-bold tracking-tight">ARQUITECTO DE SISTEMAS</h1>
+              <Shield className="text-blue-400 w-6 h-6 shrink-0" />
+              <h1 className="text-xl sm:text-3xl font-bold tracking-tight">ARQUITECTO DE SISTEMAS</h1>
             </div>
             <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md italic border-l-2 border-blue-500 pl-3">
               {mantraSubtitle || '"Construyendo rutinas a prueba de fallos..."'}

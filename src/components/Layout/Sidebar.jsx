@@ -1,9 +1,8 @@
-import React from 'react';
 import { 
-  Shield, Activity, ClipboardList, Target, Box, Users, Settings, ShieldAlert, X
+  Shield, Activity, ClipboardList, Target, Box, Users, Settings, ShieldAlert, X, LogOut
 } from 'lucide-react';
 
-const Sidebar = ({ activeTab, onTabChange, isMaster, currentStreak, isOpen, onClose }) => {
+const Sidebar = ({ activeTab, onTabChange, isMaster, currentStreak, isOpen, onClose, onLogout }) => {
   const tabs = [
     { id: 'dashboard', label: 'Comando Central', icon: Activity },
     { id: 'weekly', label: 'Plan Semanal', icon: ClipboardList },
@@ -14,108 +13,110 @@ const Sidebar = ({ activeTab, onTabChange, isMaster, currentStreak, isOpen, onCl
   ];
 
   return (
-    <>
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm transition-opacity"
-          onClick={onClose}
-        />
-      )}
-
-      {/* Sidebar Container */}
-      <aside className={`
-        sidebar fixed md:static inset-y-0 left-0 z-50
-        transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-      `}>
-        {/* Header / Logo */}
-        <div className="p-6 flex items-center justify-between border-b border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-500/10 p-2 rounded-xl border border-blue-500/20 shadow-inner">
-              <Shield className="text-blue-400 w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-white font-black tracking-tight leading-none text-lg">ARQUITECTO</h1>
-              <span className="text-blue-400 text-[10px] font-bold tracking-widest uppercase">DE SISTEMAS</span>
-            </div>
+    <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
+      {/* Header / Logo */}
+      <div className="p-6 flex items-center justify-between border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-500/10 p-2 rounded-xl border border-blue-500/20 shadow-inner">
+            <Shield className="text-blue-400 w-6 h-6" />
           </div>
-          {/* Close button for mobile */}
-          <button 
-            onClick={onClose}
-            className="md:hidden text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div>
+            <h1 className="text-white font-black tracking-tight leading-none text-lg">ARQUITECTO</h1>
+            <span className="text-blue-400 text-[10px] font-bold tracking-widest uppercase">DE SISTEMAS</span>
+          </div>
         </div>
+        {/* Close button for mobile */}
+        <button
+          onClick={onClose}
+          className="md:hidden text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
 
-        {/* Navigation Tabs */}
-        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 custom-scrollbar">
-          <div className="px-3 mb-3">
-            <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Navegación Módulos</h2>
+      {/* Navigation Tabs */}
+      <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 custom-scrollbar">
+        <div className="px-3 mb-3">
+          <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Navegación Módulos</h2>
+        </div>
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => {
+                onTabChange(tab.id);
+                onClose();
+              }}
+              className={`
+                w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 text-[15px] font-bold
+                ${isActive
+                  ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}
+              `}
+            >
+              <Icon className={`w-5 h-5 ${isActive ? 'text-blue-400' : 'text-slate-500'}`} />
+              {tab.label}
+            </button>
+          );
+        })}
+
+        {isMaster && (
+          <div className="pt-6 mt-6 border-t border-white/5 relative">
+            <div className="absolute inset-0 bg-red-500/5 blur-xl pointer-events-none rounded-full" />
+            <button
+              onClick={() => {
+                onTabChange('admin');
+                onClose();
+              }}
+              className={`
+                relative w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 text-[15px] font-bold
+                ${activeTab === 'admin'
+                  ? 'bg-red-500/10 text-red-400 border border-red-500/30'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}
+              `}
+            >
+              <ShieldAlert className={`w-5 h-5 ${activeTab === 'admin' ? 'text-red-400' : 'text-slate-500'}`} />
+              MASTER ADMIN
+            </button>
           </div>
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  onTabChange(tab.id);
-                  onClose();
-                }}
-                className={`
-                  w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 text-[15px] font-bold
-                  ${isActive 
-                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]' 
-                    : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}
-                `}
-              >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-blue-400' : 'text-slate-500'}`} />
-                {tab.label}
-              </button>
-            );
-          })}
+        )}
+      </nav>
 
-          {isMaster && (
-            <div className="pt-6 mt-6 border-t border-white/5 relative">
-              <div className="absolute inset-0 bg-red-500/5 blur-xl pointer-events-none rounded-full" />
-              <button
-                onClick={() => {
-                  onTabChange('admin');
-                  onClose();
-                }}
-                className={`
-                  relative w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 text-[15px] font-bold
-                  ${activeTab === 'admin'
-                    ? 'bg-red-500/10 text-red-400 border border-red-500/30'
-                    : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}
-                `}
-              >
-                <ShieldAlert className={`w-5 h-5 ${activeTab === 'admin' ? 'text-red-400' : 'text-slate-500'}`} />
-                MASTER ADMIN
-              </button>
-            </div>
-          )}
-        </nav>
-
-        {/* Footer Area (e.g. Streak Widget inside Sidebar bottom) */}
+      {/* Footer Area: Streak & Logout */}
+      <div className="p-6 border-t border-white/5 space-y-4">
         {currentStreak !== undefined && (
-          <div className="p-6 border-t border-white/5">
-            <div className="bg-amber-500/5 border border-amber-500/20 rounded-3xl p-4 flex items-center justify-between relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="flex items-center gap-3 relative z-10">
-                <span className="text-2xl drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">🔥</span>
-                <div>
-                  <div className="text-amber-500 font-black text-xl tracking-tight leading-none">{currentStreak}</div>
-                  <div className="text-[9px] font-bold text-amber-500/70 uppercase tracking-widest mt-0.5">DÍAS EN RACHA</div>
-                </div>
+          <div className="bg-amber-500/5 border border-amber-500/20 rounded-3xl p-4 flex items-center justify-between relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex items-center gap-3 relative z-10">
+              <span className="text-2xl drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">🔥</span>
+              <div>
+                <div className="text-amber-500 font-black text-xl tracking-tight leading-none">{currentStreak}</div>
+                <div className="text-[9px] font-bold text-amber-500/70 uppercase tracking-widest mt-0.5">DÍAS EN RACHA</div>
               </div>
             </div>
           </div>
         )}
-      </aside>
-    </>
+
+        {/* Global Logout Button inside Sidebar for easier access */}
+        <button
+          onClick={() => {
+            if (typeof onLogout === 'function') {
+              onLogout();
+              onClose();
+            }
+          }}
+          className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 text-[14px] font-bold text-slate-500 hover:bg-red-500/10 hover:text-red-400 group/logout"
+        >
+          <div className="bg-slate-800 group-hover/logout:bg-red-500/20 p-2 rounded-xl transition-colors">
+            <LogOut className="w-5 h-5" />
+          </div>
+          <span>Cerrar Sesión</span>
+        </button>
+      </div>
+    </aside>
+
   );
 };
 

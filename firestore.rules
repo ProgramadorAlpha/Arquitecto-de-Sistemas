@@ -4,7 +4,7 @@ service cloud.firestore {
     
     // Master User Helper Function
     function isMaster() {
-      return request.auth.token.email == 'tecnomania73@gmail.com';
+      return request.auth.token.email == 'tecnomania73@gmail.com' || request.auth.token.email == 'josegr1.8@gmail.com';
     }
 
     // Default: Deny all

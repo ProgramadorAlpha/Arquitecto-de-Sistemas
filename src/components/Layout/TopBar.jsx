@@ -14,9 +14,9 @@ const TopBar = ({
         {/* Mobile Menu Button */}
         <button 
           onClick={onOpenSidebar}
-          className="md:hidden p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="hamburger-btn"
         >
-          <Menu className="w-6 h-6" />
+          <Menu size={18} />
         </button>
 
         {/* Greeting & Date */}

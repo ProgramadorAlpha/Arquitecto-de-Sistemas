@@ -69,11 +69,22 @@ const MonthlyTab = () => {
   const handleGenerateIntention = async () => {
     setIsGenerating(true);
     try {
-      const prompt = `Basado en estas victorias: "${data.wins}" y estas fugas: "${data.drains}", sugiere una INTENCIÓN MENSUAL corta y poderosa (máximo 10 palabras). Devuelve SOLO el texto.`;
-      const res = await actions.callAI(prompt, "Eres un coach de alto rendimiento estoico.");
-      updateField('intention', res.trim().replace(/^"|"$/g, ''));
+      const prompt = `Basado en mi visión mensual:
+        Victorias actuales: "${data.wins || 'Ninguna registrada'}"
+        Fugas de energía: "${data.drains || 'Ninguna registrada'}"
+        Meta de ingresos: "${data.revenue_goal || 'No definida'}"
+        Recompensa planeada: "${data.celebration || 'No definida'}"
+        
+        Sugiere una INTENCIÓN MENSUAL (Mantra del Mes) que sea corta, poderosa y brutalmente accionable (máximo 12 palabras). 
+        Devuelve SOLO el texto plano, sin comillas iniciales ni finales.`;
+      const res = await actions.callAI(prompt, "Eres un estratega de alto rendimiento y coach estoico. Tu misión es dar claridad absoluta.");
+      if (res) {
+        const cleanedRes = res.trim().replace(/^["']|["']$/g, '');
+        updateField('intention', cleanedRes);
+      }
     } catch (err) {
-        console.error(err);
+        console.error("Monthly Intention Error:", err);
+        alert("Error al conectar con la IA. Verifica tu API Key.");
     } finally {
         setIsGenerating(false);
     }
@@ -127,7 +138,7 @@ const MonthlyTab = () => {
       </div>
 
       {/* Intention */}
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden">
+      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
         
         <div className="flex items-center justify-between mb-8">
@@ -136,8 +147,8 @@ const MonthlyTab = () => {
                     <Compass className="w-8 h-8 text-blue-200" />
                 </div>
                 <div>
-                    <h3 className="text-2xl font-black uppercase tracking-tighter">Intención del Mes</h3>
-                    <p className="text-blue-100 text-sm font-medium">Una frase que guíe tu enfoque absoluto</p>
+                    <h3 className="text-xl md:text-2xl font-black uppercase tracking-tighter">Mantra del Mes</h3>
+                    <p className="text-blue-100 text-[10px] md:text-sm font-medium">Enfoque absoluto para los próximos 30 días</p>
                 </div>
             </div>
             <button 
@@ -155,7 +166,7 @@ const MonthlyTab = () => {
             value={data.intention || ''}
             onChange={e => setData(prev => ({ ...prev, intention: e.target.value }))}
             onBlur={e => updateField('intention', e.target.value)}
-            className="w-full bg-white/10 border-2 border-white/20 p-6 rounded-[2rem] text-2xl font-black text-center placeholder-white/30 outline-none focus:border-white/40 transition"
+            className="w-full bg-white/10 border-2 border-white/20 p-5 md:p-6 rounded-2xl md:rounded-[2rem] text-lg md:text-2xl font-black text-center placeholder-white/30 outline-none focus:border-white/40 transition"
             placeholder="Ej: CLARIDAD SOBRE VELOCIDAD"
         />
       </div>

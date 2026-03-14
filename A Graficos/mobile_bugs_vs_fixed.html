@@ -1,0 +1,138 @@
+
+<style>
+  .w { padding: 1rem 0; font-family: var(--font-sans); }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .phone-frame { background: #111; border: 2px solid #2A2D35; border-radius: 16px; padding: 10px 8px; overflow: hidden; }
+  .phone-bar { display: flex; justify-content: space-between; padding: 4px 8px 8px; }
+  .phone-bar span { font-size: 10px; color: #6B7280; }
+  .label { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 8px; }
+  .label-bad { color: #F87171; }
+  .label-ok { color: #34D399; }
+  .bug-tag { font-size: 10px; background: rgba(248,113,113,0.15); color: #F87171; border-radius: 4px; padding: 1px 6px; display: inline-block; margin: 2px 0; }
+  .fix-tag { font-size: 10px; background: rgba(52,211,153,0.15); color: #34D399; border-radius: 4px; padding: 1px 6px; display: inline-block; margin: 2px 0; }
+
+  /* BUGGY mockup */
+  .bad-app { background: #0C0D10; border-radius: 10px; padding: 8px; min-height: 260px; position: relative; overflow: hidden; }
+  .bad-sidebar { position: absolute; left: 0; top: 0; width: 80px; background: #13151A; height: 100%; border-right: 1px solid #2A2D35; padding: 6px; z-index: 2; }
+  .bad-sidebar-item { height: 8px; background: #2A2D35; border-radius: 4px; margin: 6px 0; }
+  .bad-main { margin-left: 72px; padding: 6px; }
+  .bad-row { display: flex; gap: 4px; }
+  .bad-card { flex: 1; background: #13151A; border: 1px solid #2A2D35; border-radius: 6px; padding: 5px; min-height: 50px; min-width: 60px; }
+  .bad-text { font-size: 8px; color: #9CA3AF; word-break: break-all; }
+  .overlap { position: absolute; left: 40px; top: 80px; background: #1A1D24; border: 1px solid #A78BFA55; border-radius: 8px; padding: 6px; width: 100px; z-index: 5; font-size: 8px; color: #A78BFA; }
+  .broken-text { font-size: 8px; color: #F1F1F3; }
+  .broken-text br { display: block; content: ''; }
+
+  /* FIXED mockup */
+  .good-app { background: #0C0D10; border-radius: 10px; padding: 8px; min-height: 260px; }
+  .good-header { display: flex; align-items: center; gap: 6px; padding: 4px 0 8px; border-bottom: 1px solid #2A2D35; margin-bottom: 8px; }
+  .hamburger { width: 22px; height: 16px; display: flex; flex-direction: column; justify-content: space-between; }
+  .hamburger span { display: block; height: 2px; background: #9CA3AF; border-radius: 2px; }
+  .good-title { font-size: 9px; font-weight: 600; color: #F1F1F3; }
+  .good-card { background: #13151A; border: 1px solid #2A2D35; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+  .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .card-ttl { font-size: 8px; font-weight: 600; letter-spacing: 0.06em; color: #9CA3AF; text-transform: uppercase; }
+  .card-val { font-size: 14px; font-weight: 600; color: #F1F1F3; }
+  .pill { font-size: 8px; padding: 1px 5px; border-radius: 10px; }
+  .pill-a { background: rgba(251,191,36,0.15); color: #FCD34D; }
+  .pill-e { background: rgba(52,211,153,0.15); color: #34D399; }
+  .prog { height: 3px; background: #2A2D35; border-radius: 99px; overflow: hidden; margin-top: 5px; }
+  .prog-fill { height: 100%; background: #FBBF24; border-radius: 99px; }
+  .check-row { display: flex; align-items: center; gap: 5px; margin: 3px 0; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .dot-done { background: #34D399; }
+  .dot-empty { border: 1.5px solid #3F3F46; background: transparent; }
+  .row-label { font-size: 8px; color: #9CA3AF; }
+
+  .section-divider { height: 1px; background: #2A2D35; margin: 1rem 0; }
+
+  .issue-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .issue { display: flex; align-items: flex-start; gap: 8px; }
+  .issue-icon { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .issue-text { font-size: 12px; color: var(--color-text-secondary); line-height: 1.4; }
+  code { font-family: var(--font-mono); font-size: 11px; background: var(--color-background-secondary); padding: 1px 5px; border-radius: 4px; color: var(--color-text-primary); }
+</style>
+
+<div class="w">
+  <div class="cols">
+    <div>
+      <div class="label label-bad">Antes — Bugs detectados</div>
+      <div class="phone-frame">
+        <div class="phone-bar"><span>17:37</span><span>39%</span></div>
+        <div class="bad-app">
+          <div class="bad-sidebar">
+            <div class="bad-sidebar-item" style="width:40px"></div>
+            <div class="bad-sidebar-item" style="width:30px"></div>
+            <div class="bad-sidebar-item" style="width:35px"></div>
+            <div style="position:absolute;top:60px;left:4px;font-size:7px;color:#F87171">← sidebar<br>bloqueando</div>
+          </div>
+          <div class="bad-main">
+            <div class="bad-row">
+              <div class="bad-card">
+                <div class="bad-text">JOURNAL<br>DE<br>ENERGÍA<br>REGISTRA<br>TU<br>FRECUENCIA</div>
+              </div>
+              <div class="bad-card" style="opacity:0.3; min-width:20px"></div>
+            </div>
+            <div style="margin-top:6px" class="bad-row">
+              <div class="bad-card" style="min-height:35px">
+                <div class="bad-text">VITALS<br>SEMANALES</div>
+              </div>
+            </div>
+            <div class="overlap">vocab card<br>superpuesta ⚠</div>
+          </div>
+        </div>
+      </div>
+      <div class="issue-list">
+        <div class="issue"><div class="issue-icon" style="background:#F87171"></div><span class="issue-text">Sidebar visible cubre el contenido</span></div>
+        <div class="issue"><div class="issue-icon" style="background:#F87171"></div><span class="issue-text">Texto se parte verticalmente</span></div>
+        <div class="issue"><div class="issue-icon" style="background:#EF9F27"></div><span class="issue-text">Paneles flotantes encima de cards</span></div>
+        <div class="issue"><div class="issue-icon" style="background:#EF9F27"></div><span class="issue-text">Scroll horizontal no deseado</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="label label-ok">Después — Grid corregido</div>
+      <div class="phone-frame">
+        <div class="phone-bar"><span>17:37</span><span>39%</span></div>
+        <div class="good-app">
+          <div class="good-header">
+            <div class="hamburger"><span></span><span></span><span></span></div>
+            <div class="good-title">Hola, Jose</div>
+            <div style="margin-left:auto;width:20px;height:20px;border-radius:50%;background:#378ADD;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff">J</div>
+          </div>
+          <div class="good-card" style="border-top:2px solid #FBBF24">
+            <div class="card-head"><span class="card-ttl">Tesla Morning</span><span class="pill pill-a">0%</span></div>
+            <div class="check-row"><div class="dot dot-empty"></div><span class="row-label">Movimiento · 15min</span></div>
+            <div class="check-row"><div class="dot dot-empty"></div><span class="row-label">Meditación · 10min</span></div>
+            <div class="prog"><div class="prog-fill" style="width:0%"></div></div>
+          </div>
+          <div class="good-card" style="border-top:2px solid #34D399">
+            <div class="card-head"><span class="card-ttl">Bloques sagrados</span><span class="pill pill-e">1/2</span></div>
+            <div class="check-row"><div class="dot dot-done"></div><span class="row-label">Deep GymWork</span></div>
+            <div class="check-row"><div class="dot dot-empty"></div><span class="row-label">Lectura 30min</span></div>
+          </div>
+          <div class="good-card" style="border-top:2px solid #A78BFA">
+            <div class="card-head"><span class="card-ttl">Journal de Energía</span></div>
+            <div style="font-size:8px;color:#9CA3AF">Nivel de energía: <span style="color:#FBBF24">7/10</span></div>
+            <div class="prog" style="margin-top:4px"><div class="prog-fill" style="width:70%;background:#A78BFA"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="issue-list">
+        <div class="issue"><div class="issue-icon" style="background:#34D399"></div><span class="issue-text">Sidebar oculto + hamburguesa visible</span></div>
+        <div class="issue"><div class="issue-icon" style="background:#34D399"></div><span class="issue-text">Cards en columna única, sin overlaps</span></div>
+        <div class="issue"><div class="issue-icon" style="background:#34D399"></div><span class="issue-text">Texto legible, sin word-break raro</span></div>
+        <div class="issue"><div class="issue-icon" style="background:#34D399"></div><span class="issue-text">Paneles flotantes → <code>static</code></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6">
+    <strong style="font-size:13px;color:var(--color-text-primary)">Integración en 3 pasos:</strong><br>
+    1 · Pegar <code>responsive.css</code> al final de tu <code>index.css</code><br>
+    2 · Copiar <code>useSidebar.js</code> a <code>src/hooks/</code><br>
+    3 · Añadir <code>hamburger-btn</code> + overlay en tu layout principal
+  </div>
+</div>

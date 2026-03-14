@@ -1,0 +1,300 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   ARQUITECTO DE SISTEMAS — Responsive Fix
+   Añadir en: src/index.css  (pegar al final del archivo existente)
+   ═══════════════════════════════════════════════════════════════════════════
+
+   PROBLEMAS DETECTADOS EN MÓVIL:
+   1. Layout side-by-side no colapsa → elementos superpuestos
+   2. Sidebar se mantiene visible y empuja/cubre el contenido
+   3. Paneles flotantes (vocabulary card, journal) se salen del viewport
+   4. Texto partido verticalmente por falta de espacio horizontal
+   5. Sliders y widgets salen del contenedor
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* ─── BREAKPOINTS USADOS ────────────────────────────────────────────────────
+   > 1024px  → Desktop   (layout original de 2 columnas)
+   768-1024px → Tablet   (reducir sidebar, grids de 2 col)
+   < 768px   → Móvil     (todo en 1 columna, sidebar oculto)
+   ─────────────────────────────────────────────────────────────────────── */
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   TABLET (768px – 1024px)
+   ══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+
+  /* App shell: sidebar más estrecho */
+  .app-shell {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+
+  .main-content {
+    padding: 20px 20px;
+    gap: 16px;
+  }
+
+  /* Grids de 3 → 2 columnas en tablet */
+  .widget-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* La tercera card ocupa toda la fila */
+  .widget-grid-3 > *:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   MÓVIL (< 768px) — FIX PRINCIPAL
+   ══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+
+  /* ─── 1. APP SHELL — Todo en 1 columna ─────────────────────────────── */
+  .app-shell {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto 1fr;
+    overflow: visible;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  /* ─── 2. SIDEBAR — Oculto por defecto, solo topbar visible ─────────── */
+  .sidebar {
+    display: none;                   /* ocultado; se muestra con JS al abrir menú */
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    width: 280px;
+    max-width: 85vw;
+    padding: 24px 16px;
+    overflow-y: auto;
+    background: #13151A;
+    border-right: 1px solid #2A2D35;
+  }
+
+  /* Sidebar abierto: añadir clase .sidebar--open desde React */
+  .sidebar--open {
+    display: flex !important;
+  }
+
+  /* Overlay detrás del sidebar */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    background: rgba(0,0,0,0.6);
+  }
+  .sidebar-overlay--open {
+    display: block;
+  }
+
+  /* ─── 3. BOTÓN HAMBURGUESA — mostrar en móvil ───────────────────────── */
+  .hamburger-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid #2A2D35;
+    cursor: pointer;
+    color: #9CA3AF;
+  }
+  .hamburger-btn:hover {
+    background: #1F2229;
+    color: #F1F1F3;
+  }
+
+  /* ─── 4. TOPBAR / HEADER ────────────────────────────────────────────── */
+  .topbar {
+    padding: 12px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    gap: 12px;
+  }
+
+  /* ─── 5. CONTENIDO PRINCIPAL ────────────────────────────────────────── */
+  .main-content {
+    padding: 16px 14px;
+    gap: 12px;
+    overflow-x: hidden;             /* ← evita scroll horizontal */
+    min-height: 0;
+  }
+
+  /* ─── 6. TODOS LOS GRIDS → 1 COLUMNA ───────────────────────────────── */
+  .widget-grid-3,
+  .widget-grid-2,
+  .widget-grid-auto,
+  .checklist-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px;
+  }
+
+  /* Checklist mantiene 2 columnas si el ítem cabe */
+  .checklist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* ─── 7. CARDS — padding reducido, sin desbordamiento ──────────────── */
+  .widget-card {
+    padding: 14px 14px;
+    gap: 10px;
+    overflow: hidden;               /* ← contenido no desborda la card */
+    min-width: 0;                   /* ← flex/grid child no expande */
+  }
+
+  /* ─── 8. PANELES FLOTANTES (Vocabulary, Journal, etc.) ─────────────── */
+  /* Si los paneles secundarios están en flex row junto al main → apilar */
+  .dashboard-columns,
+  .content-with-panel,
+  .main-with-sidebar,
+  [class*="flex-row"],
+  [class*="grid-cols-2"] {
+    flex-direction: column !important;
+    display: flex !important;
+    gap: 12px;
+  }
+
+  /* Paneles que usan position absolute/fixed → reposicionar */
+  [class*="panel"],
+  [class*="floating"],
+  [class*="aside"] {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    transform: none !important;
+  }
+
+  /* ─── 9. OVERFLOW EN CONTENEDORES FLEX ──────────────────────────────── */
+  /* Evitar que children con min-width rompan el layout */
+  .widget-card *,
+  .main-content * {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* ─── 10. SLIDERS (energy level, etc.) ─────────────────────────────── */
+  input[type="range"] {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  /* ─── 11. TYPOGRAPHY — ajuste en móvil ──────────────────────────────── */
+
+  /* Evitar títulos que rompen línea por falta de espacio */
+  .widget-card__title,
+  [class*="section-title"],
+  [class*="widget-title"] {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Títulos grandes reducidos */
+  h1, .text-5xl { font-size: 24px !important; }
+  h2, .text-4xl { font-size: 20px !important; }
+  h3, .text-3xl { font-size: 18px !important; }
+  .text-2xl      { font-size: 16px !important; }
+
+  /* ─── 12. HORARIO / TIMELINE ─────────────────────────────────────────── */
+  /* Las horas que mostraban "08:00\nPM" en columnas separadas */
+  [class*="time-label"],
+  [class*="schedule-time"] {
+    white-space: nowrap;
+    font-size: 12px;
+  }
+
+  [class*="schedule-row"],
+  [class*="timeline-item"] {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* ─── 13. BADGES DE DÍAS (LUN/MAR/VIER) ─────────────────────────────── */
+  [class*="day-badge"],
+  [class*="days-row"] {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* ─── 14. JOURNAL DE ENERGÍA — fix layout roto ───────────────────────── */
+  /* El journal mostraba ícono + texto en columna con espacios enormes */
+  [class*="journal"],
+  [class*="energy-journal"] {
+    width: 100% !important;
+    padding: 14px !important;
+  }
+
+  /* ─── 15. VOCAB / FLASHCARD PANEL ───────────────────────────────────── */
+  [class*="vocab"],
+  [class*="flashcard"],
+  [class*="english"] {
+    width: 100% !important;
+    position: static !important;
+    max-height: none !important;
+  }
+
+  /* ─── 16. FAB BUTTON (brain icon abajo a la derecha) ─────────────────── */
+  /* Asegurar que no tape contenido importante */
+  [class*="fab"],
+  [class*="floating-btn"] {
+    bottom: 20px !important;
+    right: 16px !important;
+  }
+
+  /* ─── 17. SCROLL HORIZONTAL DESACTIVADO ─────────────────────────────── */
+  body, #root {
+    overflow-x: hidden;
+  }
+
+  /* Contenedores que usaban overflow-x: auto en horizontal → wrap */
+  [class*="scroll-x"],
+  [class*="overflow-x"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   HAMBURGUESA — ocultar en desktop
+   ══════════════════════════════════════════════════════════════════════ */
+.hamburger-btn {
+  display: none;  /* visible solo en móvil via media query arriba */
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   HELPER: Clases utilitarias para aplicar en JSX
+   ══════════════════════════════════════════════════════════════════════
+
+   Uso en componentes React:
+
+   // App.jsx o layout principal
+   <div className="app-shell">
+     <div id="sidebar-overlay" className="sidebar-overlay"
+          onClick={closeSidebar}/>
+     <aside className={`sidebar ${sidebarOpen ? 'sidebar--open' : ''}`}>
+       ...
+     </aside>
+     <div className="main-content">
+       <header className="topbar">
+         <button className="hamburger-btn" onClick={toggleSidebar}>
+           <MenuIcon size={18} />
+         </button>
+         ...
+       </header>
+       ...
+     </div>
+   </div>
+
+   // Grid widgets
+   <div className="widget-grid-3">   ← 3 cols desktop / 2 tablet / 1 móvil
+   <div className="widget-grid-2">   ← 2 cols desktop / 1 móvil
+   <div className="checklist-grid">  ← 2 cols siempre
+
+   ═══════════════════════════════════════════════════════════════════ */
