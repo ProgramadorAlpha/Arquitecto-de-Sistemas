@@ -65,10 +65,15 @@ const NetworkTab = () => {
       setLoading(false);
     });
     
-    // Load custom rule
+    // Load custom settings (Rule & Expansion Strategy)
     const ruleUnsub = onSnapshot(doc(db, 'users', user.uid, 'settings', 'network'), (doc) => {
-        if (doc.exists() && doc.data().customDailyRule) {
-            setCustomRule(doc.data().customDailyRule);
+        if (doc.exists()) {
+            if (doc.data().customDailyRule) {
+                setCustomRule(doc.data().customDailyRule);
+            }
+            if (doc.data().customExpansionStrategy) {
+                setExpansionStrategy(doc.data().customExpansionStrategy);
+            }
         }
     });
 
@@ -198,9 +203,11 @@ const NetworkTab = () => {
         OBJETIVO: Elevar el nivel promedio de mis relaciones y encontrar mentores o aliados estratégicos.
         Dime una sola frase brutalmente honesta y accionable sobre a quién debo buscar o cómo debo filtrar a mis candidatos.`;
         const res = await actions.callAI(prompt, "Eres un estratega de redes de alto nivel (Mastermind Architect).");
-        setExpansionStrategy(res.trim());
+        const newStrategy = res.replace(/^IA:\s*/i, '').trim();
+        setExpansionStrategy(newStrategy);
+        await setDoc(doc(db, 'users', user.uid, 'settings', 'network'), { customExpansionStrategy: newStrategy }, { merge: true }).catch(() => {});
     } catch (err) {
-        console.error(err);
+        console.error("Error generating expansion strategy:", err);
     } finally {
         setIsGeneratingExpansion(false);
     }
@@ -278,14 +285,14 @@ const NetworkTab = () => {
          </div>
       </div>
 
-      <div className="flex justify-between items-end px-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end px-2 gap-4 mt-8">
         <div>
             <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tighter text-xl flex items-center gap-2">
                 <Users className="w-6 h-6 text-slate-400" /> Miembros de la Tribu
             </h3>
         </div>
-        <Button onClick={() => handleOpenEdit()} className="bg-slate-900 dark:bg-blue-600 text-white rounded-2xl px-6 py-3 font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-500/20">
-            <Plus className="w-4 h-4" /> Añadir Miembro
+        <Button onClick={() => handleOpenEdit()} className="bg-slate-900 dark:bg-blue-600 text-white rounded-2xl px-6 py-3 font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-500/20 w-full sm:w-auto">
+            <Plus className="w-4 h-4 ml-0" /> Añadir Miembro
         </Button>
       </div>
 
@@ -319,7 +326,7 @@ const NetworkTab = () => {
                                 </span>
                             </div>
                         </div>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-1 xl:opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => handleOpenEdit(person)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-400"><Edit2 className="w-4 h-4" /></button>
                             <button onClick={() => handleDeletePerson(person.id)} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
                         </div>
@@ -351,17 +358,17 @@ const NetworkTab = () => {
       </div>
 
       {/* Expansion Section */}
-      <div className="bg-white dark:bg-slate-900 p-10 rounded-[3.5rem] border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 p-6 md:p-10 rounded-[3.5rem] border border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden mt-8">
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/30 dark:bg-blue-900/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
         <div className="relative z-10">
-            <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
                 <div>
                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter mb-2">Buscando la Tribu (Expansión)</h3>
                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 max-w-lg">
                        "Eres el promedio de las 5 personas que te rodean." En busca de mentes maestras para elevar el estándar.
                    </p>
                 </div>
-                <div className="text-right">
+                <div className="text-left md:text-right">
                     <span className="text-5xl font-black text-blue-600 dark:text-blue-400 drop-shadow-sm">{Math.round(expansionProgress)}%</span>
                 </div>
             </div>
@@ -373,26 +380,26 @@ const NetworkTab = () => {
                 ></div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col lg:flex-row gap-6">
                 <button 
                     onClick={() => handleOpenEdit(null, true)}
-                    className="flex items-center justify-center gap-4 p-6 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:border-blue-400 dark:hover:border-blue-600 hover:text-blue-500 transition-all group bg-slate-50 dark:bg-slate-800/30"
+                    className="flex lg:flex-col lg:justify-center items-center justify-start gap-4 p-6 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:border-blue-400 dark:hover:border-blue-600 hover:text-blue-500 transition-all group bg-slate-50 dark:bg-slate-800/30 min-w-[250px]"
                 >
                     <Plus className="w-6 h-6 group-hover:scale-125 transition-transform" />
-                    <span className="font-black uppercase text-xs tracking-widest">Añadir Candidato a la Tribu</span>
+                    <span className="font-black uppercase text-xs tracking-widest text-left lg:text-center">Añadir Candidato a la Tribu</span>
                 </button>
 
-                <div className="p-6 bg-amber-50/50 dark:bg-amber-900/10 rounded-3xl border border-amber-100 dark:border-amber-900/30 flex items-start gap-4 flex-1">
-                    <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-amber-500">
-                        {isGeneratingExpansion ? <Loader2 className="w-5 h-5 animate-spin" /> : <Lightbulb className="w-5 h-5 fill-amber-100 dark:fill-amber-900/50" onClick={handleGenerateExpansion} style={{cursor: 'pointer'}} />}
+                <div className="p-6 bg-amber-50/50 dark:bg-amber-900/10 rounded-3xl border border-amber-100 dark:border-amber-900/30 flex lg:flex-row flex-col items-start gap-4 flex-1">
+                    <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-amber-500 shrink-0 mx-auto lg:mx-0">
+                        {isGeneratingExpansion ? <Loader2 className="w-5 h-5 animate-spin" /> : <Lightbulb className="w-5 h-5 fill-amber-100 dark:fill-amber-900/50 cursor-pointer hover:scale-110 transition-transform" onClick={handleGenerateExpansion} />}
                     </div>
-                    <div className="flex-1">
-                        <div className="flex justify-between items-center mb-1">
+                    <div className="flex-1 w-full text-center lg:text-left">
+                        <div className="flex flex-col md:flex-row md:justify-between items-center gap-2 mb-3 md:mb-1">
                             <h4 className="text-[10px] font-black uppercase text-amber-600 tracking-widest">Estrategia de Expansión</h4>
-                            <button onClick={handleGenerateExpansion} className="text-[8px] font-bold text-amber-700 underline uppercase tracking-tighter">Regenerar con IA</button>
+                            <button onClick={handleGenerateExpansion} disabled={isGeneratingExpansion} className="text-[10px] px-3 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-lg hover:bg-amber-200 transition-colors font-bold text-amber-700 uppercase tracking-tighter disabled:opacity-50">Regenerar con IA</button>
                         </div>
-                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 italic leading-snug opacity-80">
-                            IA: "{expansionStrategy || "Pulsa en la bombilla para generar una estrategia de expansión basada en tu red actual."}"
+                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 italic leading-snug opacity-80 mt-2">
+                            "{expansionStrategy || "Pulsa en la bombilla para generar una estrategia de expansión basada en tu red actual."}"
                         </p>
                     </div>
                 </div>
