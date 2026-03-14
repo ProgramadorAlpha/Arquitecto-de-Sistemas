@@ -3,20 +3,20 @@ import {
   Target, 
   Trophy, 
   BatteryLow, 
-  Compass, 
-  Sparkles, 
   Euro, 
   Gift, 
   Loader2,
   Save,
-  TrendingUp
+  TrendingUp,
+  XCircle,
+  Users,
+  Bot
 } from 'lucide-react';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useAppContext } from '../../context/AppContext';
 import { getMonthId } from '../../utils/dateUtils';
-import { callGeminiAI } from '../../services/ai';
 import Card from '../UI/Card';
 import Button from '../UI/Button';
 
@@ -26,13 +26,14 @@ const MonthlyTab = () => {
   const [data, setData] = useState({
     wins: '',
     drains: '',
-    intention: '',
+    eliminate: '',
+    delegate: '',
+    automate: '',
     revenue_last: '',
     revenue_goal: '',
     celebration: ''
   });
   const [loading, setLoading] = useState(true);
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const monthId = getMonthId(0); // Current month
 
@@ -49,7 +50,9 @@ const MonthlyTab = () => {
         setData({
             wins: '',
             drains: '',
-            intention: '',
+            eliminate: '',
+            delegate: '',
+            automate: '',
             revenue_last: '',
             revenue_goal: '',
             celebration: ''
@@ -66,29 +69,7 @@ const MonthlyTab = () => {
     await setDoc(doc(db, 'users', user.uid, 'monthly', monthId), { [field]: value }, { merge: true });
   };
 
-  const handleGenerateIntention = async () => {
-    setIsGenerating(true);
-    try {
-      const prompt = `Basado en mi visión mensual:
-        Victorias actuales: "${data.wins || 'Ninguna registrada'}"
-        Fugas de energía: "${data.drains || 'Ninguna registrada'}"
-        Meta de ingresos: "${data.revenue_goal || 'No definida'}"
-        Recompensa planeada: "${data.celebration || 'No definida'}"
-        
-        Sugiere una INTENCIÓN MENSUAL (Mantra del Mes) que sea corta, poderosa y brutalmente accionable (máximo 12 palabras). 
-        Devuelve SOLO el texto plano, sin comillas iniciales ni finales.`;
-      const res = await actions.callAI(prompt, "Eres un estratega de alto rendimiento y coach estoico. Tu misión es dar claridad absoluta.");
-      if (res) {
-        const cleanedRes = res.trim().replace(/^["']|["']$/g, '');
-        updateField('intention', cleanedRes);
-      }
-    } catch (err) {
-        console.error("Monthly Intention Error:", err);
-        alert("Error al conectar con la IA. Verifica tu API Key.");
-    } finally {
-        setIsGenerating(false);
-    }
-  };
+
 
   if (loading) return <div className="p-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-amber-500" /></div>;
 
@@ -137,38 +118,65 @@ const MonthlyTab = () => {
         </Card>
       </div>
 
-      {/* Intention */}
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 text-white shadow-2xl relative overflow-hidden">
+      {/* Liberación de Ancho de Banda */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
         
         <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
                 <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md">
-                    <Compass className="w-8 h-8 text-blue-200" />
+                    <Target className="w-8 h-8 text-slate-300" />
                 </div>
                 <div>
-                    <h3 className="text-xl md:text-2xl font-black uppercase tracking-tighter">Mantra del Mes</h3>
-                    <p className="text-blue-100 text-[10px] md:text-sm font-medium">Enfoque absoluto para los próximos 30 días</p>
+                    <h3 className="text-xl md:text-2xl font-black uppercase tracking-tighter">Liberación de Ancho de Banda</h3>
+                    <p className="text-slate-400 text-[10px] md:text-sm font-medium">Sistematiza tu energía. Elimina el ruido. Escala tu tiempo.</p>
                 </div>
             </div>
-            <button 
-                onClick={handleGenerateIntention}
-                disabled={isGenerating}
-                className="bg-white text-blue-700 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-blue-50 transition shadow-lg shadow-blue-900/20"
-            >
-                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                IA: Sugerir
-            </button>
         </div>
 
-        <input 
-            type="text"
-            value={data.intention || ''}
-            onChange={e => setData(prev => ({ ...prev, intention: e.target.value }))}
-            onBlur={e => updateField('intention', e.target.value)}
-            className="w-full bg-white/10 border-2 border-white/20 p-5 md:p-6 rounded-2xl md:rounded-[2rem] text-lg md:text-2xl font-black text-center placeholder-white/30 outline-none focus:border-white/40 transition"
-            placeholder="Ej: CLARIDAD SOBRE VELOCIDAD"
-        />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-3">
+                <h4 className="flex items-center gap-2 text-red-500 font-bold uppercase tracking-widest text-xs">
+                    <XCircle className="w-4 h-4" /> Deprecar (Eliminar)
+                </h4>
+                <textarea 
+                    value={data.eliminate || ''}
+                    onChange={e => setData(prev => ({ ...prev, eliminate: e.target.value }))}
+                    onBlur={e => updateField('eliminate', e.target.value)}
+                    rows="3"
+                    className="w-full bg-slate-800/50 dark:bg-slate-900/50 border border-slate-700 p-4 rounded-2xl text-sm font-medium text-slate-200 placeholder-slate-600 outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 resize-none transition"
+                    placeholder="Ej: Reuniones sin agenda"
+                />
+            </div>
+            
+            <div className="space-y-3">
+                <h4 className="flex items-center gap-2 text-amber-500 font-bold uppercase tracking-widest text-xs">
+                    <Users className="w-4 h-4" /> Tercerizar (Delegar)
+                </h4>
+                <textarea 
+                    value={data.delegate || ''}
+                    onChange={e => setData(prev => ({ ...prev, delegate: e.target.value }))}
+                    onBlur={e => updateField('delegate', e.target.value)}
+                    rows="3"
+                    className="w-full bg-slate-800/50 dark:bg-slate-900/50 border border-slate-700 p-4 rounded-2xl text-sm font-medium text-slate-200 placeholder-slate-600 outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 resize-none transition"
+                    placeholder="Ej: Facturación y cobros"
+                />
+            </div>
+            
+            <div className="space-y-3">
+                <h4 className="flex items-center gap-2 text-blue-500 font-bold uppercase tracking-widest text-xs">
+                    <Bot className="w-4 h-4" /> Sistematizar (Automatizar)
+                </h4>
+                <textarea 
+                    value={data.automate || ''}
+                    onChange={e => setData(prev => ({ ...prev, automate: e.target.value }))}
+                    onBlur={e => updateField('automate', e.target.value)}
+                    rows="3"
+                    className="w-full bg-slate-800/50 dark:bg-slate-900/50 border border-slate-700 p-4 rounded-2xl text-sm font-medium text-slate-200 placeholder-slate-600 outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 resize-none transition"
+                    placeholder="Ej: Onboarding de clientes"
+                />
+            </div>
+        </div>
       </div>
 
       {/* Metrics */}
