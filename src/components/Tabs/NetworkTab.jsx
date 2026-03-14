@@ -41,6 +41,10 @@ const NetworkTab = () => {
   const [adviceData, setAdviceData] = useState(null);
   const [targetPerson, setTargetPerson] = useState(null);
 
+  // Custom Rule State
+  const [customRule, setCustomRule] = useState("");
+  const [isEditingRule, setIsEditingRule] = useState(false);
+
   // Form state
   const [form, setForm] = useState({
     name: '',
@@ -60,7 +64,18 @@ const NetworkTab = () => {
       setNetwork(data);
       setLoading(false);
     });
-    return unsub;
+    
+    // Load custom rule
+    const ruleUnsub = onSnapshot(doc(db, 'users', user.uid, 'settings', 'network'), (doc) => {
+        if (doc.exists() && doc.data().customDailyRule) {
+            setCustomRule(doc.data().customDailyRule);
+        }
+    });
+
+    return () => {
+        unsub();
+        ruleUnsub();
+    };
   }, [user]);
 
   const activeMembers = network.filter(p => p.status !== 'candidate');
@@ -72,6 +87,20 @@ const NetworkTab = () => {
   const quotes = ["Tu éxito como CEO no vale nada si este círculo se rompe.", "El liderazgo empieza en casa.", "Nadie en su lecho de muerte dice: 'Ojalá hubiera trabajado más'."];
   const rules = ["Prohibido hablar de obra", "Hoy solo se escucha, no se resuelve", "Preguntar: ¿Cómo te sientes? antes de ¿Qué hiciste?"];
   const questions = ["¿Qué aventura imposible intentaríamos si el dinero no importara?", "¿Cuál es tu recuerdo favorito de nosotros este año?", "¿En qué te puedo apoyar mejor esta semana?"];
+
+  const displayRule = customRule || rules[dayIdx];
+
+  const handleSaveCustomRule = async (newRule) => {
+      const ruleText = newRule.trim();
+      const updatedRule = ruleText || rules[0]; // Fallback to default if empty
+      setCustomRule(updatedRule);
+      setIsEditingRule(false);
+      try {
+          await setDoc(doc(db, 'users', user.uid, 'settings', 'network'), { customDailyRule: updatedRule }, { merge: true });
+      } catch (e) {
+          console.warn("No se pudo guardar la regla en Firebase (permisos), pero se actualizó localmente", e);
+      }
+  };
 
   const handleOpenEdit = (person = null, isCandidate = false) => {
     setEditingPerson(person);
@@ -206,9 +235,32 @@ const NetworkTab = () => {
                 <p className="text-xl font-medium italic text-slate-700 dark:text-slate-200 leading-relaxed opacity-90">
                     "{quotes[dayIdx]}"
                 </p>
-                <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-xl font-black text-[10px] uppercase tracking-widest">
-                    <Info className="w-3.5 h-3.5" />
-                    Regla de Hoy: {rules[dayIdx]}
+                <div className="mt-4">
+                    {isEditingRule ? (
+                        <div className="inline-flex items-center w-full max-w-sm">
+                           <input
+                              type="text"
+                              defaultValue={displayRule}
+                              autoFocus
+                              onBlur={(e) => handleSaveCustomRule(e.target.value)}
+                              onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleSaveCustomRule(e.target.value);
+                                  if (e.key === 'Escape') setIsEditingRule(false);
+                              }}
+                              className="w-full px-4 py-2 bg-white dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 rounded-xl font-black text-[10px] uppercase tracking-widest border border-rose-300 dark:border-rose-700 outline-none focus:ring-2 focus:ring-rose-500 shadow-sm"
+                              placeholder="Escribe tu nueva regla..."
+                           />
+                        </div>
+                    ) : (
+                        <div 
+                            onClick={() => setIsEditingRule(true)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-xl font-black text-[10px] uppercase tracking-widest cursor-pointer hover:bg-rose-200 dark:hover:bg-rose-800/50 transition-colors shadow-sm"
+                            title="Click para editar la regla de hoy"
+                        >
+                            <Edit2 className="w-3.5 h-3.5 opacity-70" />
+                            Regla de Hoy: {displayRule}
+                        </div>
+                    )}
                 </div>
             </div>
 
