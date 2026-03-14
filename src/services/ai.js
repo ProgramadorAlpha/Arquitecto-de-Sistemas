@@ -37,6 +37,13 @@ export const callGeminiAI = async (prompt, systemInstruction = "Eres un asistent
         if (prompt.toLowerCase().includes("intención")) {
             return "EJECUCIÓN MÁXIMA — CERO EXCUSAS";
         }
+        if (prompt.toLowerCase().includes("coach experto en relaciones") || prompt.toLowerCase().includes("conexión")) {
+            return JSON.stringify({
+                consejo: "La llave de tu red falló en la capa de Google. Mientras la restauras: Escucha el doble de lo que hablas hoy.",
+                tema: "Aspiraciones personales y metas a corto plazo",
+                pregunta: "¿Qué desafío invisible estás enfrentando en este momento y cómo puedo sumar valor?"
+            });
+        }
         throw error;
     }
 };
