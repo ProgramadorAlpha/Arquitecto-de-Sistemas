@@ -1,30 +1,22 @@
-import { GoogleGenAI } from "@google/genai";
+import { getGenerativeModel } from "firebase/ai";
+import { vertexAI } from "./firebase";
 
-// SDK Directo de Gemini — Bypassa el wrapper de Firebase AI
-// POLÍTICA AI_STRICT_POLICY.md: Modelo 3.1 mandatorio. NO downgrade.
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-// POLÍTICA AI_STRICT_POLICY.md: gemini-2.5-flash = más avanzado VERIFICADO en API real
-// NO USAR gemini-3.1-flash-lite → no existe en la API de Google (404 garantizado)
-const MANDATED_MODEL = "gemini-2.5-flash";
-
-const genAI = new GoogleGenAI({ apiKey: API_KEY });
+// Utilizando Firebase Vertex AI
+const MANDATED_MODEL = "gemini-2.5-flash"; // o "gemini-1.5-flash" si el 2.5 no está disponible aún en Firebase Vertex AI
 
 /**
- * Función central para llamadas a la IA — Gemini 3.1 Flash Lite.
- * Usa el SDK @google/genai directamente para máximo rendimiento y control.
+ * Función central para llamadas a la IA usando Vertex AI de Firebase.
  */
 export const callGeminiAI = async (prompt, systemInstruction = "Eres un asistente experto en productividad.") => {
-    console.log(`🚀 Iniciando llamada a AI...`, { model: MANDATED_MODEL, backend: "GoogleGenAI-Direct" });
+    console.log(`🚀 Iniciando llamada a AI...`, { model: MANDATED_MODEL, backend: "Firebase-VertexAI" });
     try {
-        const response = await genAI.models.generateContent({
+        const model = getGenerativeModel(vertexAI, { 
             model: MANDATED_MODEL,
-            contents: prompt,
-            config: {
-                systemInstruction: systemInstruction,
-            }
+            systemInstruction: systemInstruction 
         });
 
-        const finalResponse = response.text;
+        const response = await model.generateContent(prompt);
+        const finalResponse = response.response.text();
         console.log("✅ Respuesta de la IA:", finalResponse);
         return finalResponse;
     } catch (error) {

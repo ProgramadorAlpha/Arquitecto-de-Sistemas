@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
-import { getAI, GoogleAIBackend } from "firebase/ai";
+import { getAI, VertexAIBackend } from "firebase/ai";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,10 +15,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
-// Inicialización de AI — Backend: Google AI Developer (API Key)
-// POLÍTICA: Ver AI_STRICT_POLICY.md — NO cambiar a backends inferiores
-export const vertexAI = getAI(app, { 
-  backend: new GoogleAIBackend(import.meta.env.VITE_GEMINI_API_KEY) 
+// Inicialización de Vertex AI para Firebase
+export const vertexAI = getAI(app, {
+  backend: new VertexAIBackend() // Utiliza la integración nativa de Vertex AI activada en Firebase
 });
 
 // Firebase v10+ modern offline persistence (replaces deprecated enableIndexedDbPersistence)
