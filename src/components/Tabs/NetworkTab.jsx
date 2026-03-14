@@ -199,11 +199,12 @@ const NetworkTab = () => {
   const handleGenerateExpansion = async () => {
     setIsGeneratingExpansion(true);
     try {
-        const prompt = `Analiza mi red actual de ${activeMembers.length} miembros y mis ${candidates.length} candidatos. Genera una ESTRATEGIA DE EXPANSIÓN DE RED (Tribu) para este mes.
-        OBJETIVO: Elevar el nivel promedio de mis relaciones y encontrar mentores o aliados estratégicos.
-        Dime una sola frase brutalmente honesta y accionable sobre a quién debo buscar o cómo debo filtrar a mis candidatos.`;
-        const res = await actions.callAI(prompt, "Eres un estratega de redes de alto nivel (Mastermind Architect).");
-        const newStrategy = res.replace(/^IA:\s*/i, '').trim();
+        const prompt = `Analiza mi red de ${activeMembers.length} miembros y ${candidates.length} candidatos. 
+        Genera tu respuesta en UNA SOLA ORACIÓN, máximo 20 palabras. 
+        Debe ser una directriz brutalmente honesta y accionable sobre a quién buscar.
+        REGLAS ESTRICTAS: NO uses formato markdown, NO uses asteriscos (*), NO uses viñetas, NO saludes. VE DIRECTO AL GRANO.`;
+        const res = await actions.callAI(prompt, "Eres un estratega de redes de alto nivel. Eres quirúrgico, directo y hablas con absoluta brevedad.");
+        const newStrategy = res.replace(/^IA:\s*/i, '').replace(/[*#]/g, '').trim();
         setExpansionStrategy(newStrategy);
         await setDoc(doc(db, 'users', user.uid, 'settings', 'network'), { customExpansionStrategy: newStrategy }, { merge: true }).catch(() => {});
     } catch (err) {
