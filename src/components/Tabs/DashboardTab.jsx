@@ -39,9 +39,9 @@ import { useAuth } from '../../context/AuthContext';
 import Card from '../UI/Card';
 import Button from '../UI/Button';
 import Modal from '../UI/Modal';
-import EnglishWidget from '../UI/EnglishWidget';
+import LanguageWidget, { LANGUAGES, LEVELS } from '../UI/LanguageWidget';
 import { getWeekId } from '../../utils/dateUtils';
-import { generateEnglishWords } from '../../services/ai';
+import { generateLanguageWords } from '../../services/ai';
 
 /* ─── Circular Progress Component ─── */
 const CircularProgress = ({ percentage, size = 120, strokeWidth = 10 }) => {
@@ -148,6 +148,14 @@ const DashboardTab = () => {
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState({});
 
+  // ── Language / Level state (multi-language module) ──
+  const [langId,  setLangId]  = useState(() => localStorage.getItem('language_widget_lang')  || 'english');
+  const [levelId, setLevelId] = useState(() => localStorage.getItem('language_widget_level') || 'C1');
+  const [langSuccessStreak, setLangSuccessStreak] = useState(
+    () => parseInt(localStorage.getItem(`lang_streak_${localStorage.getItem('language_widget_lang') || 'english'}`) || '0')
+  );
+  const [levelUpToast, setLevelUpToast] = useState(null);
+
   // Editor states
   const [isSacredModalOpen, setIsSacredModalOpen] = useState(false);
   const [isReadingModalOpen, setIsReadingModalOpen] = useState(false);
@@ -155,10 +163,10 @@ const DashboardTab = () => {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', category: 'Deep Work', startTime: '09:00', endTime: '10:00' });
 
-  const today = new Date().toISOString().split('T')[0];
+  const today  = new Date().toISOString().split('T')[0];
   const weekId = getWeekId(0);
-  // Mutex to prevent parallel Gemini calls on rapid onSnapshot events
-  const isGeneratingEnglishRef = useRef(false);
+  // Mutex to prevent parallel AI calls on rapid onSnapshot events
+  const isGeneratingRef = useRef(false);
   const settingsRef = useRef({});
 
   useEffect(() => {
@@ -186,48 +194,47 @@ const DashboardTab = () => {
       onSnapshot(doc(db, 'users', user.uid, 'weekly', weekId), (d) => {
         if (d.exists()) setData(prev => ({ ...prev, weeklyFocus: d.data() }));
       }),
-      // English Words & Status + Mental State + PlanB
+      // Language Words (multi-language) & Status + Mental State + PlanB
       onSnapshot(doc(db, 'users', user.uid, 'daily_content', today), async (d) => {
+        const langKey   = `${langId}Words`;
+        const langObj   = LANGUAGES.find(l => l.id === langId) || LANGUAGES[0];
+        const levelObj  = LEVELS.find(l => l.id === levelId) || LEVELS[4];
+
         const generateAndSave = async () => {
-          if (isGeneratingEnglishRef.current) return; // mutex guard
-          isGeneratingEnglishRef.current = true;
+          if (isGeneratingRef.current) return;
+          isGeneratingRef.current = true;
           try {
-            const words = await generateEnglishWords();
+            const words = await generateLanguageWords(langObj.id, langObj.nativeName, levelObj.id, levelObj.wordsPerDay);
             await setDoc(doc(db, 'users', user.uid, 'daily_content', today), {
-              englishWords: words,
-              englishCompleted: false,
+              [langKey]: words,
+              [`${langId}Completed`]: false,
               energyLevel: 5,
               mentalState: '',
               planBActive: false
             }, { merge: true });
             setData(prev => ({ ...prev, englishWords: words }));
           } catch (err) {
-            console.error('Error generating English words:', err);
+            console.error('Error generating language words:', err);
           } finally {
-            isGeneratingEnglishRef.current = false;
+            isGeneratingRef.current = false;
           }
         };
 
         if (d.exists()) {
           const content = d.data();
-          const words = content.englishWords || [];
+          const words   = content[langKey] || content.englishWords || [];
           setData(prev => ({
             ...prev,
             englishWords: words,
-            englishCompleted: content.englishCompleted || false,
-            englishScore: content.englishScore,
+            englishCompleted: content[`${langId}Completed`] || content.englishCompleted || false,
+            englishScore: content[`${langId}Score`] ?? content.englishScore,
             energyLevel: content.energyLevel || 5,
             mentalState: content.mentalState || '',
             planBActive: content.planBActive || false
           }));
-          // Generate only if doc has no words AND not already generating
-          if (words.length === 0 && !isGeneratingEnglishRef.current) {
-            generateAndSave();
-          }
+          if (words.length === 0 && !isGeneratingRef.current) generateAndSave();
         } else {
-          if (!isGeneratingEnglishRef.current) {
-            generateAndSave();
-          }
+          if (!isGeneratingRef.current) generateAndSave();
         }
       }),
       // Stats / Settings
@@ -296,15 +303,82 @@ const DashboardTab = () => {
     }
   };
 
-  const completeEnglish = async (score) => {
+  // ── Complete Language Session (con lógica de progresión de nivel) ──
+  const completeLanguageSession = async (score, meta = {}) => {
+    const langKey  = `${langId}Words`;
+    const pct      = meta.pct ?? Math.round((score / (data.englishWords?.length || 1)) * 100);
+
     setData(prev => ({ ...prev, englishCompleted: true, englishScore: score }));
     await setDoc(doc(db, 'users', user.uid, 'daily_content', today), {
-      englishCompleted: true,
-      englishScore: score ?? 0,
-      englishWords: data.englishWords,
+      [`${langId}Completed`]: true,
+      [`${langId}Score`]: score,
+      [langKey]: data.englishWords,
+      // legacy compat:
+      englishCompleted: langId === 'english' ? true : undefined,
+      englishScore:     langId === 'english' ? score : undefined,
     }, { merge: true });
+
     confetti({ particleCount: 100, spread: 60, origin: { y: 0.7 }, colors: ['#10b981', '#34d399', '#6ee7b7'] });
+
+    // ── Progresión automática de nivel ──
+    if (pct >= 80) {
+      const streakKey = `lang_streak_${langId}`;
+      const newStreak = langSuccessStreak + 1;
+      localStorage.setItem(streakKey, String(newStreak));
+      setLangSuccessStreak(newStreak);
+
+      const currentLevel = LEVELS.find(l => l.id === levelId) || LEVELS[4];
+      const threshold    = currentLevel.streakToLevelUp;
+
+      if (threshold && newStreak >= threshold) {
+        const currentIdx  = LEVELS.findIndex(l => l.id === levelId);
+        const nextLevel   = LEVELS[currentIdx + 1];
+        if (nextLevel) {
+          localStorage.setItem('language_widget_level', nextLevel.id);
+          localStorage.setItem(streakKey, '0');
+          setLevelId(nextLevel.id);
+          setLangSuccessStreak(0);
+          // Guardar en Firestore
+          await setDoc(doc(db, 'users', user.uid, 'settings', 'language_settings'), {
+            targetLanguage: langId,
+            currentLevel: nextLevel.id,
+            updatedAt: today,
+          }, { merge: true });
+          // Toast de nivel
+          setLevelUpToast({ from: currentLevel.id, to: nextLevel.id, lang: langId });
+          setTimeout(() => setLevelUpToast(null), 5000);
+          confetti({ particleCount: 250, spread: 120, origin: { y: 0.45 }, colors: ['#f59e0b', '#fbbf24', '#fde68a', '#fff'] });
+        }
+      }
+    }
   };
+
+  // ── Cambio de idioma (invalida caché del día) ──
+  const handleLanguageChange = async (newLangId) => {
+    setLangId(newLangId);
+    localStorage.setItem('language_widget_lang', newLangId);
+    const newLevelId = localStorage.getItem('language_widget_level') || 'B2';
+    // Reset daily words for new language
+    setData(prev => ({ ...prev, englishWords: [], englishCompleted: false, englishScore: undefined }));
+    isGeneratingRef.current = false; // release mutex
+    // Save language preference in Firestore
+    await setDoc(doc(db, 'users', user.uid, 'settings', 'language_settings'), {
+      targetLanguage: newLangId, currentLevel: newLevelId
+    }, { merge: true });
+  };
+
+  const handleLevelChange = async (newLevelId) => {
+    setLevelId(newLevelId);
+    localStorage.setItem('language_widget_level', newLevelId);
+    setData(prev => ({ ...prev, englishWords: [], englishCompleted: false, englishScore: undefined }));
+    isGeneratingRef.current = false;
+    await setDoc(doc(db, 'users', user.uid, 'settings', 'language_settings'), {
+      targetLanguage: langId, currentLevel: newLevelId
+    }, { merge: true });
+  };
+
+  // ── Legacy compat (seguía siendo llamado en algunas partes) ──
+  const completeEnglish = (score) => completeLanguageSession(score);
 
   const toggleReading = async () => {
     const isRead = data.reading.last_read_date === today;
@@ -374,15 +448,15 @@ const DashboardTab = () => {
   // ── useMemo hooks MUST be before any early return (React rules of hooks) ──
   const morningHabits = useMemo(() => [
     { 
-      key: 'movement', label: 'Movimiento', color: 'amber', icon: <Swords className="w-5 h-5" />,
+      key: 'movement', number: 3, label: 'Movimiento', color: 'amber', icon: <Swords className="w-5 h-5" />,
       subLabel: data.planBActive ? '1 Ejercicio Express (Circuito corto)' : '15min (3 ejercicios × 3 sets)'
     },
     { 
-      key: 'meditation', label: 'Meditación', color: 'blue', icon: <Brain className="w-5 h-5" />,
+      key: 'meditation', number: 6, label: 'Meditación', color: 'blue', icon: <Brain className="w-5 h-5" />,
       subLabel: data.planBActive ? '6 min meditación guiada rápida' : '10 min total silencio'
     },
     { 
-      key: 'planTomorrow', label: 'Revisión de Planificación', color: 'purple', icon: <Target className="w-5 h-5" />,
+      key: 'planTomorrow', number: 9, label: 'Revisión de Planificación', color: 'purple', icon: <Target className="w-5 h-5" />,
       subLabel: data.planBActive ? 'Visión Express de agenda (3 min)' : 'Revisar la agenda preparada anoche para tener claridad del día'
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -456,6 +530,22 @@ const DashboardTab = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-blue-500/30">
+      
+      {/* Toast de Level Up Global */}
+      {levelUpToast && (
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[1000] animate-bounce-short">
+          <div className="bg-gradient-to-r from-amber-500 to-yellow-400 p-[2px] rounded-[2rem] shadow-[0_10px_40px_rgba(245,158,11,0.4)]">
+            <div className="bg-slate-900 px-6 py-4 rounded-[calc(2rem-2px)] flex items-center gap-4">
+              <span className="text-3xl">{LANGUAGES.find(l => l.id === levelUpToast.lang)?.emoji || '🌍'}</span>
+              <div>
+                <p className="font-black text-amber-400 text-lg uppercase tracking-tight leading-none mb-1">¡Nuevo Nivel Alcanzado!</p>
+                <p className="text-slate-300 text-sm font-medium">Has pasado del nivel <strong className="text-white">{levelUpToast.from}</strong> al <strong className="text-white">{levelUpToast.to}</strong>. ¡Increíble!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* STATUS BAR HORIZONTAL (Sólo Mobile/Tablet) */}
       <div className="w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between shadow-sm z-20 relative lg:hidden">
         <div className="flex items-center gap-4">
@@ -491,9 +581,6 @@ const DashboardTab = () => {
               <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
               Sincronización Biotécnica
             </p>
-            <h2 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tighter lg:hidden">
-              {today}
-            </h2>
           </div>
           
           {/* Desktop Only Status Indicators (Premium Feel) */}
@@ -540,74 +627,82 @@ const DashboardTab = () => {
         </div>
 
         {/* ── ROW 1: Progreso + info ── */}
-        <div className="flex items-center gap-6 relative z-10">
-          <CircularProgress percentage={totalProgress} size={130} strokeWidth={10} />
+        <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 relative z-10 w-full">
+          <div className="shrink-0 scale-90 sm:scale-100">
+            <CircularProgress percentage={totalProgress} size={130} strokeWidth={10} />
+          </div>
 
-          <div className="flex-1 flex flex-col gap-5">
+          <div className="flex-1 flex flex-col gap-4 sm:gap-5 w-full">
             {/* Chips — distribuidos en todo el ancho */}
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-3 w-full">
 
-              <div className="flex items-center gap-2 bg-blue-500/10 px-4 py-2.5 rounded-[1.2rem] border border-blue-500/20 shadow-sm flex-1 justify-center">
+              <div className="flex items-center gap-2 bg-blue-500/10 px-3 sm:px-4 py-2 sm:py-2.5 rounded-[1.2rem] border border-blue-500/20 shadow-sm flex-1 justify-center">
                 <Calendar className="w-4 h-4 text-blue-400 shrink-0" />
-                <span className="text-xs font-black text-blue-300 uppercase tracking-wider">{currentMonth}</span>
+                <span className="text-[10px] sm:text-xs font-black text-blue-300 uppercase tracking-wider truncate">{currentMonth}</span>
               </div>
-              <div className="flex items-center gap-2 bg-emerald-500/10 px-4 py-2.5 rounded-[1.2rem] border border-emerald-500/20 shadow-sm flex-1 justify-center">
+              <div className="flex items-center gap-2 bg-emerald-500/10 px-3 sm:px-4 py-2 sm:py-2.5 rounded-[1.2rem] border border-emerald-500/20 shadow-sm flex-1 justify-center">
                 <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)] shrink-0" />
                 <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">LIVE</span>
               </div>
             </div>
 
             {/* Stats — distribuidos en todo el ancho */}
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col items-center gap-0.5 flex-1">
-                <div className="flex items-center gap-1.5 text-amber-500 text-sm font-bold">
-                  <Sun className="w-4 h-4 fill-amber-500" />
+            <div className="flex items-center justify-between w-full bg-slate-100/50 dark:bg-slate-800/30 p-3 sm:p-0 sm:bg-transparent rounded-2xl">
+              <div className="flex flex-col items-center gap-1 sm:gap-0.5 flex-1">
+                <div className="flex items-center gap-1.5 text-amber-500 text-sm sm:text-base font-bold">
+                  <Sun className="w-4 h-4 sm:w-5 sm:h-5 fill-amber-500" />
                   <span>{morningDone}/{morningHabits.length}</span>
                 </div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">AMANECER</span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-wider">AMANECER</span>
               </div>
-              <span className="text-slate-700/60 text-xl font-light">|</span>
-              <div className="flex flex-col items-center gap-0.5 flex-1">
-                <div className="flex items-center gap-1.5 text-emerald-400 text-sm font-bold">
-                  <BookOpen className="w-4 h-4" />
-                  <span>{data.englishCompleted ? '✓' : '—'}</span>
+              <span className="text-slate-300 dark:text-slate-700 sm:text-slate-700/60 text-xl font-light">|</span>
+              <div className="flex flex-col items-center gap-1 sm:gap-0.5 flex-1 group">
+                <div className={`flex items-center gap-1.5 text-sm sm:text-base font-bold transition-all duration-500 ${data.englishCompleted ? (data.englishScore === data.englishWords?.length ? 'text-amber-400 drop-shadow-[0_0_12px_rgba(251,191,36,0.8)] scale-110' : 'text-emerald-400') : 'text-slate-400'}`}>
+                  <BookOpen className={`w-4 h-4 sm:w-5 sm:h-5 ${data.englishCompleted ? 'animate-bounce' : 'group-hover:rotate-12 transition-transform'}`} />
+                  <span className="tabular-nums">
+                    {data.englishCompleted 
+                      ? `${data.englishScore || 0}/${data.englishWords?.length || 0}` 
+                      : `0/${data.englishWords?.length || 3}`}
+                  </span>
                 </div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">INGLÉS</span>
+                <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-0.5 transition-colors ${data.englishCompleted ? 'text-emerald-500' : 'text-slate-500'}`}>
+                  {data.englishCompleted ? 'DOMINADO' : `${LANGUAGES.find(l => l.id === langId)?.emoji || '🌍'} RETO ${levelId}`}
+                </span>
               </div>
-              <span className="text-slate-700/60 text-xl font-light">|</span>
-              <div className="flex flex-col items-center gap-0.5 flex-1">
-                <div className="flex items-center gap-1.5 text-indigo-400 text-sm font-bold">
-                  <Moon className="w-4 h-4 fill-indigo-400" />
+              <span className="text-slate-300 dark:text-slate-700 sm:text-slate-700/60 text-xl font-light">|</span>
+              <div className="flex flex-col items-center gap-1 sm:gap-0.5 flex-1">
+                <div className="flex items-center gap-1.5 text-indigo-400 text-sm sm:text-base font-bold">
+                  <Moon className="w-4 h-4 sm:w-5 sm:h-5 fill-indigo-400" />
                   <span>{nightDone}/{nightHabitsList.length}</span>
                 </div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">CIERRE</span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-wider">CIERRE</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* ── ROW 2: Plan B — ancho completo ── */}
-        <div className={`relative z-10 flex items-center justify-between p-3.5 px-5 rounded-[2rem] border transition-all ${
+        <div className={`relative z-10 flex flex-col sm:flex-row items-center sm:justify-between gap-4 p-4 sm:px-5 rounded-3xl sm:rounded-[2rem] border transition-all ${
             data.planBActive 
               ? 'bg-red-500/10 border-red-500/30' 
               : 'bg-slate-50 dark:bg-[#151518] border-slate-200 dark:border-[#1e1e24] shadow-xl'
           }`}>
-          <div className="flex items-center gap-4">
-            <div className={`p-2.5 rounded-full flex items-center justify-center ${data.planBActive ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'bg-[#1e1e24] text-emerald-400'}`}>
-              {data.planBActive ? <ShieldAlert className="w-5 h-5" /> : <Zap className="w-5 h-5 fill-emerald-400" />}
+          <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+            <div className={`p-2 sm:p-2.5 rounded-full flex items-center justify-center shrink-0 ${data.planBActive ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'bg-[#1e1e24] text-emerald-400'}`}>
+              {data.planBActive ? <ShieldAlert className="w-5 h-5 sm:w-6 sm:h-6" /> : <Zap className="w-5 h-5 sm:w-6 sm:h-6 fill-emerald-400" />}
             </div>
-            <div className="text-left">
-              <h4 className="font-extrabold text-[15px] uppercase tracking-wide leading-tight text-slate-900 dark:text-white mb-[2px]">
+            <div className="text-left flex-1 min-w-0">
+              <h4 className="font-extrabold text-[13px] sm:text-[15px] uppercase tracking-wide leading-tight text-slate-900 dark:text-white mb-[2px] truncate">
                 {data.planBActive ? 'MODO PLAN B ACTIVO' : 'MODO EXPANSIÓN (CEO)'}
               </h4>
-              <p className="text-slate-500 text-[12px] font-medium leading-none">
+              <p className="text-slate-500 text-[11px] sm:text-[12px] font-medium leading-none">
                 {data.planBActive ? 'Adaptación extrema activada' : 'Enfoque máximo'}
               </p>
             </div>
           </div>
           <button 
             onClick={() => togglePlanB()}
-            className={`px-5 py-2.5 rounded-xl text-[11px] font-bold uppercase transition-all whitespace-nowrap ml-6 shadow-sm ${
+            className={`w-full sm:w-auto px-5 py-3 sm:py-2.5 rounded-xl text-[11px] font-bold uppercase transition-all whitespace-nowrap sm:ml-6 shadow-sm flex items-center justify-center ${
                 data.planBActive
                 ? 'bg-slate-800 text-white hover:bg-slate-700'
                 : 'bg-indigo-600 text-white hover:bg-indigo-700'
@@ -676,30 +771,32 @@ const DashboardTab = () => {
                   <button 
                     key={item.key}
                     onClick={() => toggleHabit(item.key)}
-                    className={`w-full flex items-center p-4 rounded-[2rem] border-y border-r border-l-[6px] border-r-slate-100 border-y-slate-100 dark:border-r-slate-800 dark:border-y-slate-800 ${color.border} transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-lg ${isDone ? color.activeBg : 'bg-slate-50/50 dark:bg-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]'}`}
+                    className={`w-full flex items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5 rounded-[2rem] border-y border-r border-l-[6px] border-r-slate-100 border-y-slate-100 dark:border-r-slate-800 dark:border-y-slate-800 ${color.border} transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] ${isDone ? color.activeBg : 'bg-slate-50/50 dark:bg-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]'}`}
                   >
-                    {/* Number Circle */}
-                    <div className={`ml-2 w-12 h-12 rounded-full flex items-center justify-center text-xl font-black shrink-0 ${color.numBg} ${isDone ? 'opacity-50' : ''}`}>
-                      {item.number}
-                    </div>
-
-                    {/* Content */}
-                    <div className={`ml-5 flex-1 ${isDone ? 'opacity-50' : ''}`}>
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className={color.iconColor}>{item.icon}</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-100 text-[17px]">{item.label}</span>
+                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                      {/* Number Circle */}
+                      <div className={`hidden sm:flex w-12 h-12 rounded-full items-center justify-center text-xl font-black shrink-0 ${color.numBg} ${isDone ? 'opacity-50' : ''}`}>
+                        {item.number}
                       </div>
-                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-tight pr-4">
-                        {item.subLabel}
-                      </p>
+
+                      {/* Content */}
+                      <div className={`flex flex-col flex-1 min-w-0 ${isDone ? 'opacity-50' : ''}`}>
+                        <div className="flex items-start gap-2 mb-1">
+                          <div className={`mt-0.5 shrink-0 ${color.iconColor}`}>{item.icon}</div>
+                          <span className="font-bold text-slate-800 dark:text-slate-100 text-[16px] sm:text-[17px] leading-tight break-words">{item.label}</span>
+                        </div>
+                        <p className="text-[13px] sm:text-sm font-medium text-slate-500 dark:text-slate-400 leading-snug break-words pl-[30px]">
+                          {item.subLabel}
+                        </p>
+                      </div>
                     </div>
 
                     {/* Checkbox */}
-                    <div className="ml-2 shrink-0 pr-2">
+                    <div className="shrink-0 flex items-center justify-center pl-2">
                       {isDone ? (
-                        <CheckCircle2 className={`w-8 h-8 ${color.numBg.split(' ')[2]}`} />
+                        <CheckCircle2 className={`w-8 h-8 shrink-0 ${color.numBg.split(' ')[2] || 'text-slate-400'}`} />
                       ) : (
-                        <Circle className="w-8 h-8 text-slate-200 dark:text-slate-700 hover:text-slate-300 transition-colors" />
+                        <Circle className="w-8 h-8 shrink-0 text-slate-200 dark:text-slate-700 hover:text-slate-300 transition-colors" />
                       )}
                     </div>
                   </button>
@@ -801,14 +898,18 @@ const DashboardTab = () => {
         {/* =======================
             SIDEBAR WIDGETS
             ======================= */}
-          {/* ─── 3. BUSINESS ENGLISH C1 ─── */}
+          {/* ─── 3. MÓDULO MULTI-IDIOMA ─── */}
           <div className="col-span-1 order-4 flex flex-col h-full">
           {data.englishWords.length > 0 ? (
-            <EnglishWidget
+            <LanguageWidget
               words={data.englishWords}
-              onComplete={completeEnglish}
+              onComplete={completeLanguageSession}
               isCompleted={data.englishCompleted}
               sessionScore={data.englishScore}
+              languageId={langId}
+              levelId={levelId}
+              onLanguageChange={handleLanguageChange}
+              onLevelChange={handleLevelChange}
             />
           ) : (
             /* Skeleton mientras la IA genera las palabras */
@@ -818,8 +919,10 @@ const DashboardTab = () => {
                   <Loader2 className="w-5 h-5 text-indigo-400 animate-spin" />
                 </div>
                 <div>
-                  <h3 className="font-black text-white text-[15px] uppercase tracking-tight">Business English C1</h3>
-                  <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest animate-pulse">Generando vocabulario del día con IA...</p>
+                  <h3 className="font-black text-white text-[15px] uppercase tracking-tight">
+                    {(() => { const l = LANGUAGES.find(x => x.id === langId); return l ? `${l.emoji} ${l.name}` : '🌍 Idioma'; })()}
+                  </h3>
+                  <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest animate-pulse">Generando vocabulario con IA · Nivel {levelId}...</p>
                 </div>
               </div>
               <div className="space-y-3">
@@ -949,7 +1052,7 @@ const DashboardTab = () => {
           })()}
 
           {/* ─── Mandamiento del Día (improved) ─── */}
-          <div className="col-span-1 order-9 widget-card widget-card--violet !bg-gradient-to-br !from-surface-raised !to-surface-base justify-center">
+          <div className="col-span-1 order-9 widget-card widget-card--violet !bg-gradient-to-br !from-surface-raised !to-surface-base justify-center relative group">
             <div className="absolute top-4 right-8 text-8xl text-white/5 font-serif italic pointer-events-none group-hover:text-white/10 transition-all duration-700">"</div>
             <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-all duration-700" />
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-400 mb-6">Mandamiento del Día</p>
@@ -969,9 +1072,9 @@ const DashboardTab = () => {
                 >
                     <Edit2 className="w-4 h-4" />
                 </button>
-                <div className="flex items-center gap-2 mb-6">
-                    <Target className="w-5 h-5 text-red-500" />
-                    <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tighter">Foco Semanal #1</h3>
+                <div className="flex items-center gap-2 mb-6 pr-12">
+                    <Target className="w-5 h-5 text-red-500 shrink-0" />
+                    <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tighter truncate">Foco Semanal #1</h3>
                 </div>
                 <div className="p-5 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-100 dark:border-red-900/30 relative">
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
@@ -982,16 +1085,16 @@ const DashboardTab = () => {
           </div>
 
           {/* ─── Sacred Blocks (improved with timeline) ─── */}
-          <div className="col-span-1 order-6 widget-card widget-card--zinc h-full">
+          <div className="col-span-1 order-6 widget-card widget-card--zinc h-full relative group">
             <button 
                 onClick={() => setIsSacredModalOpen(true)}
                 className="absolute top-6 right-6 p-2 bg-slate-50 dark:bg-slate-800 hover:bg-white text-slate-400 rounded-xl transition"
             >
                 <Edit2 className="w-4 h-4" />
             </button>
-            <div className="flex items-center gap-2 mb-6">
-              <Anchor className="w-5 h-5 text-cyan-500" />
-              <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tighter">Bloques Sagrados</h3>
+            <div className="flex items-center gap-2 mb-6 pr-12">
+              <Anchor className="w-5 h-5 text-cyan-500 shrink-0" />
+              <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tighter truncate">Horario Sagrado</h3>
             </div>
             
             {/* Timeline layout */}
@@ -1186,7 +1289,7 @@ const DashboardTab = () => {
       {/* ═══════════════════════════════════════
           MODALS (unchanged)
          ═══════════════════════════════════════ */}
-      <Modal isOpen={isSacredModalOpen} onClose={() => setIsSacredModalOpen(false)} title="Editar Bloques">
+      <Modal isOpen={isSacredModalOpen} onClose={() => setIsSacredModalOpen(false)} title="Configurar Horario">
           <SacredBlockEditor initialBlocks={data.sacredBlocks} onSave={saveSacredBlocks} />
       </Modal>
 
