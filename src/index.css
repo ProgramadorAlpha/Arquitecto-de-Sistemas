@@ -95,12 +95,12 @@ html, body, #root {
   SOLUCIÓN: auto-fit + minmax(0, 1fr) + align-items: stretch
 */
 
-/* Grid de 3 columnas (Horario / Bloques / Lectura) */
+/* Grid asimétrico del Dashboard principal: columna principal (2fr) + columna lateral (1fr) */
 .widget-grid-3 {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  align-items: stretch;     /* ← fuerza misma altura en todas las cards */
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  align-items: start;     /* ← start para que cada columna tenga su propia altura */
 }
 
 /* Grid de 2 columnas (Foco + Manifiesto, etc.) */
@@ -127,13 +127,16 @@ html, body, #root {
 }
 
 /* Responsive: 1 columna en pantallas pequeñas */
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .app-shell {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
   }
 
-  .widget-grid-3,
+  .widget-grid-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .widget-grid-2,
   .widget-grid-auto {
     grid-template-columns: minmax(0, 1fr);

@@ -17,7 +17,7 @@ export const auth = getAuth(app);
 
 // Inicialización de Vertex AI para Firebase
 export const vertexAI = getAI(app, {
-  backend: new VertexAIBackend() // Utiliza la integración nativa de Vertex AI activada en Firebase
+  backend: new VertexAIBackend()
 });
 
 // Firebase v10+ modern offline persistence (replaces deprecated enableIndexedDbPersistence)

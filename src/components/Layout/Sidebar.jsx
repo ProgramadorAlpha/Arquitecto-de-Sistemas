@@ -1,15 +1,20 @@
 import { 
-  Shield, Activity, ClipboardList, Target, Box, Users, Settings, ShieldAlert, X, LogOut
+  Shield, Activity, ClipboardList, Target, Box, Users, Settings, ShieldAlert, X, LogOut, Globe
 } from 'lucide-react';
 
+import { useAppContext } from '../../context/AppContext';
+
 const Sidebar = ({ activeTab, onTabChange, isMaster, currentStreak, isOpen, onClose, onLogout }) => {
+  const { actions } = useAppContext();
+  
   const tabs = [
-    { id: 'dashboard', label: 'Comando Central', icon: Activity },
-    { id: 'weekly', label: 'Plan Semanal', icon: ClipboardList },
-    { id: 'monthly', label: 'Visión Mensual', icon: Target },
-    { id: 'systems', label: 'Mis Sistemas', icon: Box },
-    { id: 'network', label: 'Tribu & Apoyo', icon: Users },
-    { id: 'settings', label: 'Configuración', icon: Settings },
+    { id: 'dashboard', label: actions.t('nav_dashboard'), icon: Activity },
+    { id: 'languages', label: actions.t('nav_languages'), icon: Globe },
+    { id: 'weekly', label: actions.t('nav_weekly'), icon: ClipboardList },
+    { id: 'monthly', label: actions.t('nav_monthly'), icon: Target },
+    { id: 'systems', label: actions.t('nav_systems'), icon: Box },
+    { id: 'network', label: actions.t('nav_network'), icon: Users },
+    { id: 'settings', label: actions.t('nav_settings'), icon: Settings },
   ];
 
   return (
@@ -93,7 +98,7 @@ const Sidebar = ({ activeTab, onTabChange, isMaster, currentStreak, isOpen, onCl
               <span className="text-2xl drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">🔥</span>
               <div>
                 <div className="text-amber-500 font-black text-xl tracking-tight leading-none">{currentStreak}</div>
-                <div className="text-[9px] font-bold text-amber-500/70 uppercase tracking-widest mt-0.5">DÍAS EN RACHA</div>
+                <div className="text-[9px] font-bold text-amber-500/70 uppercase tracking-widest mt-0.5">{actions.t('nav_streak')}</div>
               </div>
             </div>
           </div>
@@ -112,7 +117,7 @@ const Sidebar = ({ activeTab, onTabChange, isMaster, currentStreak, isOpen, onCl
           <div className="bg-slate-800 group-hover/logout:bg-red-500/20 p-2 rounded-xl transition-colors">
             <LogOut className="w-5 h-5" />
           </div>
-          <span>Cerrar Sesión</span>
+          <span>{actions.t('nav_logout')}</span>
         </button>
       </div>
     </aside>

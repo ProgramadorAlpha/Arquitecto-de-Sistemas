@@ -3,7 +3,7 @@ import {
   Volume2, GraduationCap, CheckCircle2,
   ChevronLeft, ChevronRight, RotateCcw,
   Star, Zap, Trophy, X, Check, ChevronDown,
-  TrendingUp, Globe, Settings
+  TrendingUp, Globe, Settings, RefreshCcw
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -80,120 +80,9 @@ const getLevel = () => LEVELS.find(l   => l.id === (localStorage.getItem(LEVEL_K
 /* ══════════════════════════════════════════════════════
    MODAL — Selector de Idioma
 ══════════════════════════════════════════════════════ */
-const LanguageModal = ({ currentLangId, currentLevelId, onSelectLang, onSelectLevel, onClose }) => {
-  const [tab, setTab]         = useState('language'); // 'language' | 'level'
-  const [hovered, setHovered] = useState(null);
-
-  return (
-    <div
-      className="fixed inset-0 z-[999] flex items-center justify-center p-4"
-      style={{ backdropFilter: 'blur(12px)', backgroundColor: 'rgba(2,6,23,0.88)' }}
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full max-w-xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 border border-slate-700/60 rounded-[2.5rem] shadow-2xl overflow-hidden"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Deco */}
-        <div className="absolute -top-16 -right-16 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Header */}
-        <div className="relative px-8 pt-8 pb-6 border-b border-slate-800">
-          <button onClick={onClose} className="absolute top-6 right-6 p-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all">
-            <X className="w-4 h-4" />
-          </button>
-          <div className="flex items-center gap-3 mb-5">
-            <div className="bg-blue-500/15 p-2.5 rounded-2xl"><Globe className="w-5 h-5 text-blue-400" /></div>
-            <div>
-              <h2 className="text-white font-black text-xl uppercase tracking-tighter">Centro de Idiomas</h2>
-              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Personaliza tu aprendizaje</p>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex gap-2 p-1 bg-slate-800/70 rounded-2xl">
-            {[{ id: 'language', label: '🌍 Idioma' }, { id: 'level', label: '📊 Nivel CEFR' }].map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)}
-                className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${tab === t.id ? 'bg-slate-700 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Language Tab */}
-        {tab === 'language' && (
-          <div className="p-5 grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {LANGUAGES.map(lang => {
-              const isActive = lang.id === currentLangId;
-              return (
-                <button
-                  key={lang.id}
-                  onMouseEnter={() => setHovered(lang.id)}
-                  onMouseLeave={() => setHovered(null)}
-                  onClick={() => { onSelectLang(lang); onClose(); }}
-                  className={`relative flex flex-col items-center gap-2 p-4 rounded-[1.5rem] border-2 transition-all duration-200 text-center
-                    ${isActive
-                      ? `${lang.accentBg} ${lang.border} ring-2 ring-offset-1 ring-offset-slate-900 scale-[1.03] shadow-lg`
-                      : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 hover:scale-[1.02]'
-                    }`}
-                >
-                  {isActive && (
-                    <div className={`absolute -top-2 -right-2 w-6 h-6 ${lang.badgeBg} rounded-full flex items-center justify-center shadow-lg`}>
-                      <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
-                    </div>
-                  )}
-                  <span className="text-3xl">{lang.emoji}</span>
-                  <span className={`font-black text-[13px] uppercase tracking-tight leading-tight ${isActive ? lang.accent : 'text-slate-300'}`}>
-                    {lang.name}
-                  </span>
-                  <span className="text-slate-500 text-[10px] leading-tight">{lang.nativeName}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Level Tab */}
-        {tab === 'level' && (
-          <div className="p-5 flex flex-col gap-2">
-            {LEVELS.map(lvl => {
-              const isActive = lvl.id === currentLevelId;
-              return (
-                <button key={lvl.id} onClick={() => { onSelectLevel(lvl); onClose(); }}
-                  className={`flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all
-                    ${isActive
-                      ? `${lvl.bg} border-white/20 ring-2 ring-white/10 scale-[1.02]`
-                      : 'bg-slate-800/40 border-slate-700/40 hover:bg-slate-800 hover:border-slate-600'
-                    }`}>
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 font-black text-lg ${lvl.bg} border border-white/10`}>
-                    <span className={lvl.color}>{lvl.id}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`font-black text-sm ${isActive ? 'text-white' : 'text-slate-300'}`}>{lvl.name}
-                      {isActive && <span className="ml-2 text-[9px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full uppercase tracking-wider">Actual</span>}
-                    </p>
-                    <p className="text-slate-500 text-[11px] mt-0.5">{lvl.description}</p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-[10px] font-black text-slate-400">{lvl.wordsPerDay} palabras</p>
-                    <p className="text-[9px] text-slate-600">por sesión</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        <div className="px-5 pb-6">
-          <button onClick={onClose} className="w-full py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm uppercase tracking-wider transition-all">
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+// El modal de cambio de idioma ahora se maneja en la pestaña "Idiomas" para una UI más limpia.
+// Mantenemos una versión simplificada aquí si fuera necesario o lo quitamos para centralizar.
+const LanguageModal = ({ currentLangId, currentLevelId, onSelectLang, onSelectLevel, onClose }) => null;
 
 /* ══════════════════════════════════════════════════════
    PHASE: COMPLETED
@@ -221,7 +110,7 @@ const CompletedView = ({ score, total, lang, level }) => (
 /* ══════════════════════════════════════════════════════
    PHASE: FLASHCARD
 ══════════════════════════════════════════════════════ */
-const FlashcardPhase = ({ words, lang, level, onStartQuiz, onOpenModal }) => {
+const FlashcardPhase = ({ words, lang, level, onStartQuiz, onOpenModal, onRegenerate }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
@@ -264,16 +153,26 @@ const FlashcardPhase = ({ words, lang, level, onStartQuiz, onOpenModal }) => {
             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Vocabulario del día</p>
           </div>
         </div>
-        {/* Botón cambiar idioma/nivel */}
-        <button
-          onClick={onOpenModal}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all text-[10px] font-bold uppercase tracking-wider"
-          title="Cambiar idioma o nivel"
-        >
-          <Globe className="w-3.5 h-3.5" />
-          Cambiar
-          <ChevronDown className="w-3 h-3" />
-        </button>
+        <div className="flex items-center gap-2">
+          {onRegenerate && (
+            <button
+              onClick={onRegenerate}
+              className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all border border-white/5"
+              title="Regenerar hoy"
+            >
+              <RefreshCcw className="w-4 h-4" />
+            </button>
+          )}
+          <button
+            onClick={onOpenModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all text-[10px] font-bold uppercase tracking-wider"
+            title="Cambiar idioma o nivel"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            Cambiar
+            <ChevronDown className="w-3 h-3" />
+          </button>
+        </div>
       </div>
 
       {/* Dot nav */}
@@ -288,7 +187,7 @@ const FlashcardPhase = ({ words, lang, level, onStartQuiz, onOpenModal }) => {
       </div>
 
       {/* 3D Flip Card */}
-      <div className="mb-4" style={{ perspective: '1200px', height: '220px' }}>
+      <div className="mb-4" style={{ perspective: '1200px', height: '260px' }}>
         <div
           onClick={flip}
           className="cursor-pointer relative w-full h-full transition-transform duration-500"
@@ -303,10 +202,22 @@ const FlashcardPhase = ({ words, lang, level, onStartQuiz, onOpenModal }) => {
               {word.level && <span className={`text-[9px] font-black ${lang?.accentBg || 'bg-indigo-500/20'} ${lang?.accent || 'text-indigo-400'} px-2.5 py-0.5 rounded-lg uppercase tracking-wider`}>{word.level}</span>}
               {word.category && <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-lg uppercase tracking-wider ${categoryColor[word.category] || 'bg-slate-600/50 text-slate-400'}`}>{word.category}</span>}
             </div>
-            <h4 className="text-4xl font-black text-white mb-2 leading-tight">{word.word}</h4>
-            <p className="font-mono text-slate-400 text-sm mb-1">{word.phonetic}</p>
-            <p className={`${lang?.accent || 'text-indigo-300'} text-sm font-bold`}>"{word.pronunciation}"</p>
-            <p className="text-slate-600 text-[10px] uppercase tracking-widest mt-4">Toca para ver traducción →</p>
+            <div className="flex-1 flex flex-col items-center justify-center min-h-0 w-full">
+              <h4 className={`font-black text-white mb-2 leading-tight break-words w-full px-2 ${word.word?.length > 12 ? 'text-2xl' : 'text-3xl md:text-4xl'}`}>
+                {word.word}
+              </h4>
+              <div className="flex flex-col gap-1.5 items-center">
+                <p className="font-mono text-slate-400 text-xs md:text-sm bg-slate-900/50 px-3 py-0.5 rounded-full border border-slate-700/30">
+                  {word.phonetic}
+                </p>
+                {word.pronunciation && (
+                  <p className={`${lang?.accent || 'text-indigo-300'} text-xs md:text-sm font-bold tracking-wide`}>
+                    "{word.pronunciation}"
+                  </p>
+                )}
+              </div>
+            </div>
+            <p className="text-slate-600 text-[9px] uppercase tracking-[0.2em] mt-auto pt-4">Toca para ver traducción →</p>
           </div>
 
           {/* BACK */}
@@ -370,7 +281,20 @@ const QuizPhase = ({ words, lang, onFinish }) => {
 
   useEffect(() => {
     const correct = words[quizIndex].translation;
-    const others  = shuffle(words.filter((_, i) => i !== quizIndex)).slice(0, 3).map(w => w.translation);
+    const allTranslations = words.map(w => w.translation);
+    const uniqueOthers = Array.from(new Set(allTranslations)).filter(t => t !== correct);
+    const others  = shuffle(uniqueOthers).slice(0, 3);
+    
+    // Relleno de seguridad para garantizar siempre 4 opciones estrictamente distintas 
+    // por si la IA generara traducciones duplicadas en las 6 palabras del día.
+    const fallbackOptions = ["Apalancar", "Optimizar", "Desarrollo", "Proactividad", "Desempeño", "Estructura", "Adaptabilidad", "Iteración", "Sinergia"];
+    while (others.length < 3) {
+       const randomFallback = fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)];
+       if (!others.includes(randomFallback) && randomFallback !== correct) {
+          others.push(randomFallback);
+       }
+    }
+
     setOptions(shuffle([correct, ...others]));
     setSelected(null);
   }, [quizIndex, words]);
@@ -564,6 +488,7 @@ const LanguageWidget = ({
   levelId,
   onLanguageChange,
   onLevelChange,
+  onRegenerate
 }) => {
   const [phase, setPhase]         = useState('flashcard');
   const [score, setScore]         = useState(0);
@@ -628,6 +553,7 @@ const LanguageWidget = ({
           level={level}
           onStartQuiz={() => setPhase('quiz')}
           onOpenModal={() => setShowModal(true)}
+          onRegenerate={onRegenerate}
         />
       </>
     );

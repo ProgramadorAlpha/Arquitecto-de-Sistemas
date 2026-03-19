@@ -30,10 +30,165 @@ export const AppProvider = ({ children }) => {
     reading: null,
     settings: {
       user_name: '',
+      uiLanguage: 'es'
     }
   });
 
   const [isDark, setIsDark] = useState(true);
+
+  // Sistema de Traducciones Básico
+  const translations = {
+    es: {
+      nav_dashboard: 'Comando Central',
+      nav_languages: 'Idiomas',
+      nav_weekly: 'Plan Semanal',
+      nav_monthly: 'Visión Mensual',
+      nav_systems: 'Mis Sistemas',
+      nav_network: 'Tribu & Apoyo',
+      nav_settings: 'Configuración',
+      nav_logout: 'Cerrar Sesión',
+      nav_streak: 'DÍAS EN RACHA',
+      settings_title: 'Configuracion',
+      settings_subtitle: 'Personaliza tu arquitectura de vida',
+      settings_ai: 'Inteligencia Artificial',
+      settings_lang: 'Idioma de la Aplicación',
+      settings_profile: 'Perfil de Usuario',
+      settings_apply_lang: 'Aplicar Idioma',
+      settings_save_changes: 'Guardar Cambios',
+      hello: 'Hola',
+      manifesto: 'Manifiesto',
+      vaciado_mental: 'VACIADO MENTAL',
+      vaciado_title: 'Vaciado Mental Rápido',
+      vaciado_save: 'Guardar en Mi Plan',
+      vaciado_placeholder: 'Escribe todo lo que ocupe espacio ahora mismo...'
+    },
+    en: {
+      nav_dashboard: 'Control Center',
+      nav_languages: 'Languages',
+      nav_weekly: 'Weekly Plan',
+      nav_monthly: 'Monthly Vision',
+      nav_systems: 'My Systems',
+      nav_network: 'Tribe & Support',
+      nav_settings: 'Settings',
+      nav_logout: 'Logout',
+      nav_streak: 'STREAK DAYS',
+      settings_title: 'Settings',
+      settings_subtitle: 'Customize your life architecture',
+      settings_ai: 'Artificial Intelligence',
+      settings_lang: 'App Language',
+      settings_profile: 'User Profile',
+      settings_apply_lang: 'Apply Language',
+      settings_save_changes: 'Save Changes',
+      hello: 'Hello',
+      manifesto: 'Manifesto',
+      vaciado_mental: 'BRAIN DUMP',
+      vaciado_title: 'Quick Brain Dump',
+      vaciado_save: 'Save to My Plan',
+      vaciado_placeholder: 'Write everything that is taking up space right now...'
+    },
+    pt: {
+      nav_dashboard: 'Comando Central',
+      nav_languages: 'Idiomas',
+      nav_weekly: 'Plano Semanal',
+      nav_monthly: 'Visão Mensal',
+      nav_systems: 'Meus Sistemas',
+      nav_network: 'Tribo & Apoio',
+      nav_settings: 'Configurações',
+      nav_logout: 'Sair',
+      nav_streak: 'DIAS DE SEQUÊNCIA',
+      settings_title: 'Configurações',
+      settings_subtitle: 'Personalize sua arquitetura de vida',
+      settings_ai: 'Inteligência Artificial',
+      settings_lang: 'Idioma do Aplicativo',
+      settings_profile: 'Perfil do Usuário',
+      settings_apply_lang: 'Aplicar Idioma',
+      settings_save_changes: 'Salvar Alterações',
+      hello: 'Olá',
+      manifesto: 'Manifesto',
+      vaciado_mental: 'ESVAZIAMENTO MENTAL',
+      vaciado_title: 'Esvaziamento Mental Rápido',
+      vaciado_save: 'Salvar no Meu Plano',
+      vaciado_placeholder: 'Escreva tudo o que está ocupando espaço agora...'
+    },
+    fr: {
+      nav_dashboard: 'Commandement Central',
+      nav_languages: 'Langues',
+      nav_weekly: 'Plan Hebdomadaire',
+      nav_monthly: 'Vision Mensuelle',
+      nav_systems: 'Mes Systèmes',
+      nav_network: 'Tribu & Soutien',
+      nav_settings: 'Configuration',
+      nav_logout: 'Déconnexion',
+      nav_streak: 'JOURS DE SÉRIE',
+      settings_title: 'Configuration',
+      settings_subtitle: 'Personnalisez votre architecture de vie',
+      settings_ai: 'Intelligence Artificielle',
+      settings_lang: 'Langue de l\'App',
+      settings_profile: 'Profil Utilisateur',
+      settings_apply_lang: 'Appliquer la Langue',
+      settings_save_changes: 'Enregistrer',
+      hello: 'Bonjour',
+      manifesto: 'Manifeste',
+      vaciado_mental: 'VIDE-CERVEAU',
+      vaciado_title: 'Vide-Cerveau Rapide',
+      vaciado_save: 'Enregistrer dans Mon Plan',
+      vaciado_placeholder: 'Écrivez tout ce qui prend de la place en ce moment...'
+    },
+    it: {
+      nav_dashboard: 'Comando Centrale',
+      nav_languages: 'Lingue',
+      nav_weekly: 'Piano Settimanale',
+      nav_monthly: 'Visione Mensile',
+      nav_systems: 'I Miei Sistemi',
+      nav_network: 'Tribù & Supporto',
+      nav_settings: 'Impostazioni',
+      nav_logout: 'Disconnetti',
+      nav_streak: 'GIORNI DI SERIE',
+      settings_title: 'Impostazioni',
+      settings_subtitle: 'Personalizza la tua architettura di vita',
+      settings_ai: 'Intelligenza Artificiale',
+      settings_lang: 'Lingua dell\'App',
+      settings_profile: 'Profilo Utente',
+      settings_apply_lang: 'Applica Lingua',
+      settings_save_changes: 'Salva Modifiche',
+      hello: 'Ciao',
+      manifesto: 'Manifesto',
+      vaciado_mental: 'SVUOTAMENTO MENTALE',
+      vaciado_title: 'Svuotamento Mentale Rapido',
+      vaciado_save: 'Salva nel Mio Piano',
+      vaciado_placeholder: 'Scrivi tutto ciò che occupa spazio in questo momento...'
+    },
+    de: {
+      nav_dashboard: 'Zentrales Kommando',
+      nav_languages: 'Sprachen',
+      nav_weekly: 'Wochenplan',
+      nav_monthly: 'Monatliche Vision',
+      nav_systems: 'Meine Systeme',
+      nav_network: 'Stamm & Unterstützung',
+      nav_settings: 'Einstellungen',
+      nav_logout: 'Abmelden',
+      nav_streak: 'Tage in Folge',
+      settings_title: 'Einstellungen',
+      settings_subtitle: 'Personalisiere deine Lebensarchitektur',
+      settings_ai: 'Künstliche Intelligenz',
+      settings_lang: 'App-Sprache',
+      settings_profile: 'Benutzerprofil',
+      settings_apply_lang: 'Sprache anwenden',
+      settings_save_changes: 'Änderungen speichern',
+      hello: 'Hallo',
+      manifesto: 'Manifest',
+      vaciado_mental: 'BRAIN DUMP',
+      vaciado_title: 'Schneller Brain Dump',
+      vaciado_save: 'In meinem Plan speichern',
+      vaciado_placeholder: 'Schreiben Sie alles auf, was gerade Platz wegnimmt...'
+    }
+  };
+
+
+  const t = useCallback((key) => {
+    const lang = data.settings.uiLanguage || 'es';
+    return translations[lang]?.[key] || translations['es'][key] || key;
+  }, [data.settings.uiLanguage]);
 
   // Sync with Firestore
   useEffect(() => {
@@ -63,7 +218,7 @@ export const AppProvider = ({ children }) => {
 
     const settingsUnsub = onSnapshot(doc(db, 'users', user.uid, 'settings', 'config'), (d) => {
         if (d.exists()) {
-            setData(prev => ({ ...prev, settings: d.data() }));
+            setData(prev => ({ ...prev, settings: { ...prev.settings, ...d.data() } }));
         }
     });
 
@@ -114,8 +269,10 @@ export const AppProvider = ({ children }) => {
     toggleHabit,
     toggleTheme,
     updateSetting,
-    callAI
+    callAI,
+    t
   };
+
 
   return (
     <AppContext.Provider value={{ data, actions, isDark }}>

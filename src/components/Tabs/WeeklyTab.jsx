@@ -9,7 +9,9 @@ import {
   Sparkles, 
   Brain, 
   Loader2,
-  X 
+  X,
+  Trash2,
+  Archive
 } from 'lucide-react';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
@@ -19,6 +21,7 @@ import { getWeekId, formatWeekLabel } from '../../utils/dateUtils';
 import { callGeminiAI } from '../../services/ai';
 import Card from '../UI/Card';
 import Button from '../UI/Button';
+import Modal from '../UI/Modal';
 
 const WeeklyTab = () => {
   const { user } = useAuth();
@@ -34,6 +37,7 @@ const WeeklyTab = () => {
   const [loading, setLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [suggestion, setSuggestion] = useState(null);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   const weekId = getWeekId(offset);
 
@@ -63,6 +67,13 @@ const WeeklyTab = () => {
     // but updating state optimistically feels smoother
     setData(prev => ({ ...prev, [field]: value }));
     await setDoc(doc(db, 'users', user.uid, 'weekly', weekId), { [field]: value }, { merge: true });
+  };
+
+  const deleteBrainDump = async (timestampToDelete) => {
+    if (!user || !data.brain_dumps) return;
+    const newDumps = data.brain_dumps.filter(d => d.date !== timestampToDelete);
+    setData(prev => ({ ...prev, brain_dumps: newDumps }));
+    await setDoc(doc(db, 'users', user.uid, 'weekly', weekId), { brain_dumps: newDumps }, { merge: true });
   };
 
   const toggleCheck = async (key) => {
@@ -122,7 +133,7 @@ const WeeklyTab = () => {
                 <Calendar className="text-indigo-400 w-8 h-8" />
               </div>
               <div>
-                <h2 className="text-2xl font-black uppercase tracking-tighter">Ritual de Domingo</h2>
+                <h2 className="text-2xl font-black uppercase tracking-tighter">Ritual de Dominio Semanal</h2>
                 <p className="text-indigo-200 text-sm italic">"Una hora de planificación ahorra diez de ejecución."</p>
               </div>
             </div>
@@ -207,18 +218,106 @@ const WeeklyTab = () => {
                     <Brain className="w-5 h-5 text-slate-400" />
                     <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tighter">Vaciado Mental</h3>
                 </div>
-                <textarea 
-                  value={data.brain_dump || ''}
-                  onChange={e => setData(prev => ({ ...prev, brain_dump: e.target.value }))}
-                  onBlur={e => updateField('brain_dump', e.target.value)}
-                  className="w-full flex-1 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl text-sm font-medium text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/30 resize-none placeholder-slate-400"
-                  placeholder="Escribe todo lo que ocupe espacio en tu cabeza..."
-                />
+                {(!data.brain_dumps || data.brain_dumps.length === 0) ? (
+                  <div className="flex flex-col items-center justify-center flex-1 text-center py-10 opacity-50 bg-slate-50 dark:bg-slate-800/20 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700">
+                    <Brain className="w-10 h-10 mb-3 text-slate-300 dark:text-slate-600" />
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Mente Despejada</p>
+                    <p className="text-[10px] font-medium text-slate-500 mt-2 max-w-[200px]">
+                      Usa el botón flotante (cerebro) para soltar ideas en cualquier momento.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col flex-1 h-full">
+                    <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1 mb-4">
+                      {[...data.brain_dumps].reverse().slice(0, 3).map((dump, idx) => {
+                        const dateObj = new Date(dump.date);
+                        const dayName = dateObj.toLocaleDateString('es-ES', { weekday: 'short' }).slice(0, 3).toUpperCase();
+                        const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                        
+                        return (
+                          <div key={idx} className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:-translate-y-0.5 transition-transform">
+                            <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-400 dark:bg-amber-500" />
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[10px] font-black px-2 py-1 flex items-center justify-center rounded-lg uppercase tracking-widest">
+                                {dayName}
+                              </div>
+                              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold tracking-wider">{timeStr}</span>
+                            </div>
+                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap pl-1 line-clamp-2">
+                              {dump.text}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {data.brain_dumps.length > 3 && (
+                      <div className="text-center mb-4">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                          + {data.brain_dumps.length - 3} entrada{data.brain_dumps.length - 3 !== 1 ? 's' : ''} más
+                        </span>
+                      </div>
+                    )}
+                    <button 
+                      onClick={() => setIsHistoryModalOpen(true)}
+                      className="w-full mt-auto py-4 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 dark:hover:bg-amber-900/40 text-amber-700 dark:text-amber-400 font-black text-xs uppercase tracking-widest rounded-2xl transition-all border border-amber-200 dark:border-amber-900/50 flex items-center justify-center gap-2"
+                    >
+                      <Archive className="w-4 h-4" />
+                      Explorar Historial ({data.brain_dumps.length})
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </>
       )}
+
+      {/* Historial Completo Modal */}
+      <Modal 
+        isOpen={isHistoryModalOpen} 
+        onClose={() => setIsHistoryModalOpen(false)}
+        title="Archivo Mental de la Semana"
+      >
+        <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+          {(!data.brain_dumps || data.brain_dumps.length === 0) ? (
+            <div className="text-center py-10 opacity-50">
+               <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">No hay registros</p>
+            </div>
+          ) : (
+            [...data.brain_dumps].reverse().map((dump, idx) => {
+              const dateObj = new Date(dump.date);
+              const dayName = dateObj.toLocaleDateString('es-ES', { weekday: 'short' }).slice(0, 3).toUpperCase();
+              const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+              
+              return (
+                <div key={dump.date} className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm relative group">
+                  <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-amber-400 to-amber-600 dark:from-amber-500 dark:to-orange-500 rounded-l-3xl opacity-80" />
+                  
+                  <div className="flex items-center justify-between mb-4 pl-3">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[10px] font-black px-3 py-1.5 flex items-center justify-center rounded-xl uppercase tracking-widest">
+                        {dayName}
+                      </div>
+                      <span className="text-xs text-slate-400 dark:text-slate-500 font-bold tracking-wider">{timeStr}</span>
+                    </div>
+                    <button 
+                      onClick={() => deleteBrainDump(dump.date)}
+                      className="p-2 text-slate-300 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 dark:hover:text-red-400 rounded-xl transition-all"
+                      title="Eliminar registro"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap pl-3">
+                    {dump.text}
+                  </p>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };

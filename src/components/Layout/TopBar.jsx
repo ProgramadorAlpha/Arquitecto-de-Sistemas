@@ -1,11 +1,14 @@
 import React from 'react';
 import { Menu, Sun, Moon, ScrollText, LogOut } from 'lucide-react';
+import { useAppContext } from '../../context/AppContext';
 
 const TopBar = ({ 
   user, onLogout, toggleTheme, isDark, openManifesto, onOpenSidebar 
 }) => {
+  const { data, actions } = useAppContext();
+  const lang = data.settings.uiLanguage || 'es';
   const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  const today = new Date().toLocaleDateString('es-ES', dateOptions);
+  const today = new Date().toLocaleDateString(lang === 'es' ? 'es-ES' : lang === 'en' ? 'en-US' : 'es-ES', dateOptions);
 
   return (
     <header className="topbar">
@@ -22,7 +25,7 @@ const TopBar = ({
         {/* Greeting & Date */}
         <div className="hidden sm:block">
           <h2 className="text-slate-900 dark:text-white font-bold text-lg leading-tight tracking-tight">
-            Hola, {user?.name?.split(' ')[0] || 'Arquitecto'} 👋
+            {actions.t('hello')}, {user?.name?.split(' ')[0] || 'Arquitecto'} 👋
           </h2>
           <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold capitalize mt-0.5">
             {today}
@@ -44,10 +47,10 @@ const TopBar = ({
         <button 
           onClick={openManifesto}
           className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-colors shadow-sm"
-          title="Leer Manifiesto"
+          title={actions.t('manifesto')}
         >
           <ScrollText className="w-5 h-5" />
-          <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline pr-1">Manifiesto</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline pr-1">{actions.t('manifesto')}</span>
         </button>
 
         {/* User / Logout Divider */}
@@ -61,7 +64,7 @@ const TopBar = ({
           <button 
             onClick={onLogout}
             className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
-            title="Cerrar Sesión"
+            title={actions.t('nav_logout')}
           >
             <LogOut className="w-5 h-5" />
           </button>
@@ -70,5 +73,6 @@ const TopBar = ({
     </header>
   );
 };
+
 
 export default TopBar;
