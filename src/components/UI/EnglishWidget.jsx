@@ -75,8 +75,8 @@ const FlashcardPhase = ({ words, onStartQuiz }) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="bg-indigo-500/20 p-2.5 rounded-2xl">
-            <GraduationCap className="w-5 h-5 text-indigo-400" />
+          <div className="bg-slate-500/20 p-2.5 rounded-2xl">
+            <GraduationCap className="w-5 h-5 text-slate-400" />
           </div>
           <div>
             <h3 className="font-black text-white text-[15px] uppercase tracking-tight">Business English C1</h3>
@@ -231,8 +231,8 @@ const QuizPhase = ({ words, onFinish }) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="bg-indigo-500/20 p-2.5 rounded-2xl">
-            <GraduationCap className="w-5 h-5 text-indigo-400" />
+          <div className="bg-slate-500/20 p-2.5 rounded-2xl">
+            <GraduationCap className="w-5 h-5 text-slate-400" />
           </div>
           <div>
             <h3 className="font-black text-white text-[15px] uppercase tracking-tight">Quiz</h3>

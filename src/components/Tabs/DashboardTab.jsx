@@ -23,7 +23,11 @@ import {
   Swords,
   Waves,
   Battery,
+  BatteryLow,
+  BatteryMedium,
+  BatteryWarning,
   BatteryFull,
+  Quote,
   Clock,
   ClipboardList,
   Leaf,
@@ -747,70 +751,218 @@ const DashboardTab = () => {
         </div>
       </div>
 
-      <div className="widget-grid-3">
-        <div className="flex flex-col gap-5">
-          <div className="widget-card widget-card--amber !p-0 overflow-hidden">
-            <div className="bg-gradient-to-r from-orange-600 to-amber-500 dark:from-orange-700 dark:to-orange-900 p-8 text-white flex justify-between items-start relative">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mx-auto items-start">
+        {/* Columna 1 */}
+        <div className="flex flex-col gap-6">
+          <div className="widget-card bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border-amber-500/20 shadow-2xl overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 blur-[80px]"></div>
+            <div className="flex justify-between items-start relative z-10 mb-6">
               <div>
-                <h3 className="text-3xl font-black tracking-tight leading-none mb-1">Tesla Morning</h3>
-                <p className="text-orange-200 font-medium tracking-wide">3 · 6 · 9 Protocol</p>
+                <h3 className="text-3xl font-black tracking-tight leading-none mb-1 text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-400">Tesla Morning</h3>
+                <p className="text-amber-500/60 font-black tracking-widest text-[9px] uppercase">3 · 6 · 9 Protocol</p>
               </div>
               <div className="text-right">
-                <div className="text-4xl font-black leading-none">{Math.round((morningDone / morningHabits.length) * 100) || 0}%</div>
-                <div className="text-[10px] font-bold text-orange-200 uppercase tracking-widest mt-1">Complete</div>
+                <div className="text-3xl font-black leading-none text-slate-800 dark:text-white">{Math.round((morningDone / morningHabits.length) * 100) || 0}%</div>
               </div>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="space-y-3 relative z-10">
               {morningHabits.map((item) => {
                 const isDone = data.habits[item.key];
+                const colorMap = {
+                  amber: {
+                    active: 'bg-amber-500 border-amber-500 shadow-lg shadow-amber-500/20',
+                    inactive: 'border-amber-500/10 hover:border-amber-500/30',
+                    iconBgActive: 'bg-white/20 text-white',
+                    iconBgInactive: 'bg-amber-500/10 text-amber-500',
+                    textActive: 'text-amber-100',
+                  },
+                  blue: {
+                    active: 'bg-indigo-500 border-indigo-500 shadow-lg shadow-indigo-500/20',
+                    inactive: 'border-indigo-500/10 hover:border-indigo-500/30',
+                    iconBgActive: 'bg-white/20 text-white',
+                    iconBgInactive: 'bg-indigo-500/10 text-indigo-500',
+                    textActive: 'text-indigo-100',
+                  },
+                  purple: {
+                    active: 'bg-purple-500 border-purple-500 shadow-lg shadow-purple-500/20',
+                    inactive: 'border-purple-500/10 hover:border-purple-500/30',
+                    iconBgActive: 'bg-white/20 text-white',
+                    iconBgInactive: 'bg-purple-500/10 text-purple-500',
+                    textActive: 'text-purple-100',
+                  }
+                };
+                const theme = colorMap[item.color] || colorMap.amber;
+
                 return (
-                  <button key={item.key} onClick={() => toggleHabit(item.key)} className={`w-full flex items-center justify-between gap-4 p-5 rounded-[2rem] border-y border-r border-l-[6px] border-slate-100 dark:border-slate-800 transition-all ${isDone ? 'bg-amber-50/50 dark:bg-amber-900/10 opacity-60' : 'bg-slate-50/50 dark:bg-slate-800 shadow-sm'}`}>
+                  <button key={item.key} onClick={() => toggleHabit(item.key)} className={`w-full flex items-center justify-between gap-4 p-4 rounded-3xl border-2 transition-all duration-300 ${isDone ? `${theme.active} scale-[1.02]` : `bg-white/50 dark:bg-black/30 backdrop-blur-md ${theme.inactive}`}`}>
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-amber-500/10 text-amber-500 font-black text-lg shrink-0">{item.number}</div>
-                      <div className="flex flex-col flex-1 min-w-0">
-                        <span className="font-bold text-slate-800 dark:text-slate-100 text-base">{item.label}</span>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{item.subLabel}</p>
+                      <div className={`p-3 rounded-2xl flex items-center justify-center shrink-0 ${isDone ? theme.iconBgActive : theme.iconBgInactive}`}>
+                        {item.icon}
+                      </div>
+                      <div className="flex flex-col flex-1 min-w-0 text-left">
+                        <span className={`font-black text-[13px] uppercase tracking-wide leading-tight ${isDone ? 'text-white' : 'text-slate-800 dark:text-slate-200'}`}>{item.label}</span>
+                        <p className={`text-[10px] font-bold tracking-widest uppercase truncate ${isDone ? theme.textActive : 'text-slate-400'}`}>{item.subLabel}</p>
                       </div>
                     </div>
-                    {isDone ? <CheckCircle2 className="w-6 h-6 text-amber-500" /> : <Circle className="w-6 h-6 text-slate-300" />}
+                    {isDone ? <CheckCircle2 className="w-6 h-6 text-white" /> : <Circle className={`w-6 h-6 text-${item.color}-500/30`} />}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          <div className="widget-card widget-card--violet">
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-4">
-                    <div className="bg-indigo-50 dark:bg-white p-3.5 rounded-3xl shadow-sm"><Moon className="w-7 h-7 text-[#30338F] stroke-[2]" /></div>
+          <div className="widget-card !bg-white dark:!bg-[#151518] border-red-500/20 dark:border-red-900/40 relative shadow-2xl group">
+             <button onClick={() => setIsFocusModalOpen(true)} className="absolute top-6 right-6 p-2 text-slate-400 hover:text-red-500 transition-all"><Edit2 className="w-5 h-5" /></button>
+             <div className="flex items-center gap-3 mb-6">
+                 <div className="bg-red-500/10 p-3 rounded-2xl"><Target className="w-6 h-6 text-red-500" /></div>
+                 <div><h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tight text-lg text-left">Foco Semanal</h3></div>
+             </div>
+             <p className="text-2xl font-black text-red-500 uppercase tracking-tighter leading-none text-left">{data.weeklyFocus.priority_1 || 'DEFINE TU ROCA'}</p>
+          </div>
+
+          <div className="widget-card !bg-white dark:!bg-[#151518] border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden relative">
+              <div className="flex items-center gap-4 mb-6">
+                  <div className="bg-emerald-500/10 p-3 rounded-2xl"><BookOpen className="w-6 h-6 text-emerald-500" /></div>
+                  <div><h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight text-left">Lectura Actual</h3></div>
+              </div>
+              <div className="flex flex-col items-center justify-center min-h-[140px] text-center p-4">
+                  {!data.reading?.current_book ? (
+                      <button onClick={() => setIsReadingModalOpen(true)} className="text-xs font-black text-slate-400 hover:text-emerald-500 uppercase tracking-[0.2em] transition-colors">CARGAR LIBRO ACTUAL</button>
+                  ) : (
+                      <div className="w-full group cursor-pointer" onClick={toggleReading}>
+                          <p className="text-base font-black text-slate-800 dark:text-white uppercase tracking-tight mb-2 group-hover:text-emerald-500 transition-colors">{data.reading.current_book}</p>
+                          <div className="flex items-center justify-center gap-3 mb-4">
+                              <span className="h-px bg-slate-200 dark:bg-slate-800 flex-1"></span>
+                              <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full border border-emerald-500/20 text-[10px] font-black tracking-widest uppercase">
+                                  {data.reading.last_read_date === today ? 'PROGRESO HOY' : 'PENDIENTE HOY'}
+                              </div>
+                              <span className="h-px bg-slate-200 dark:bg-slate-800 flex-1"></span>
+                          </div>
+                      </div>
+                  )}
+              </div>
+          </div>
+        </div>
+
+        {/* Columna 2 */}
+        <div className="flex flex-col gap-6">
+          <div className="widget-card bg-white dark:bg-[#151518] border-slate-200 dark:border-slate-800 shadow-2xl">
+            <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                    <div className="bg-amber-500/10 p-3 rounded-2xl border border-amber-500/20"><Zap className="w-6 h-6 text-amber-500" /></div>
                     <div>
-                        <h3 className="text-xl font-bold tracking-tight text-slate-800 dark:text-white">Cierre de Alto Rendimiento</h3>
-                        <p className="text-slate-500 text-[13px] font-medium mt-0.5">Rutina nocturna</p>
+                        <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tight text-lg leading-tight text-left">Journal de Energía</h3>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-left">Estado diario</p>
                     </div>
                 </div>
-                <div className="text-[#6366f1] font-bold text-sm">{Math.round((nightDone / nightHabitsList.length) * 100) || 0}%</div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
-                {nightHabitsList.map(item => {
-                  const isDone = data.nightHabits[item.key] === 1;
+
+            <div className="mb-4 p-1">
+                <EnergySlider value={data.energyLevel} onChange={saveEnergyLevel} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                {[
+                  { id: 'focus', label: 'FOCUS MODE', icon: <Zap />, colorClass: 'amber' },
+                  { id: 'slow', label: 'SLOW STATE', icon: <Sun />, colorClass: 'emerald' },
+                  { id: 'water', label: 'WATER MODE', icon: <Waves />, colorClass: 'blue' },
+                  { id: 'burnout', label: 'LOW BATTERY', icon: <BatteryLow />, colorClass: 'red' }
+                ].map(mode => {
+                  const isSelected = data.mentalState === mode.id;
+                  const classes = {
+                    amber: { active: 'bg-amber-500/10 border-amber-500 text-amber-500', inactive: 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300 dark:hover:border-slate-700' },
+                    emerald: { active: 'bg-emerald-500/10 border-emerald-500 text-emerald-500', inactive: 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300 dark:hover:border-slate-700' },
+                    blue: { active: 'bg-blue-500/10 border-blue-500 text-blue-500', inactive: 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300 dark:hover:border-slate-700' },
+                    red: { active: 'bg-red-500/10 border-red-500 text-red-500', inactive: 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300 dark:hover:border-slate-700' }
+                  };
                   return (
-                    <button key={item.key} onClick={() => toggleNightHabit(item.key)} className={`flex flex-col justify-between p-5 rounded-[2rem] transition-all min-h-[140px] ${isDone ? `${item.theme.bg} scale-[1.02]` : 'bg-[#151518] border border-slate-800'}`}>
-                      <div className="flex items-start justify-between w-full mb-4">
-                        <div className={`p-2.5 rounded-2xl ${isDone ? 'bg-white text-indigo-600' : 'bg-slate-800 text-slate-500'}`}>{item.icon}</div>
-                        {isDone ? <CheckCircle2 className="w-6 h-6 text-indigo-600" /> : <Circle className="w-6 h-6 text-slate-700" />}
-                      </div>
-                      <div className="mt-auto">
-                        <h4 className={`font-bold text-[14px] ${isDone ? item.theme.text : 'text-slate-200'}`}>{item.label}</h4>
-                        <p className={`text-[10px] ${isDone ? item.theme.sub : 'text-slate-500'}`}>{item.subLabel}</p>
-                      </div>
+                    <button key={mode.id} onClick={() => saveMentalState(mode.id)} className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all gap-2 ${isSelected ? classes[mode.colorClass].active : classes[mode.colorClass].inactive}`}>
+                      {React.cloneElement(mode.icon, { className: 'w-5 h-5' })}
+                      <span className="text-[9px] font-black tracking-widest truncate">{mode.label}</span>
                     </button>
                   );
                 })}
             </div>
+
+            {data.energyHistory?.length > 0 && (
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3">Historial Últimos 7 Días</p>
+                <div className="flex items-end justify-between h-12 gap-1.5 px-1">
+                  {data.energyHistory.slice(-7).map((h, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                      <div className="w-full bg-indigo-500/20 rounded-t-lg relative group" style={{ height: `${(h.level || 5) * 10}%` }}>
+                        <div className="absolute inset-0 bg-indigo-400 rounded-t-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <span className="text-[8px] font-bold text-slate-600">{h.date.split('-')[2]}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="widget-card !bg-white dark:!bg-[#151518] border-slate-200 dark:border-slate-800 shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-4">
+                      <div className="bg-indigo-500/10 p-3 rounded-2xl"><Clock className="w-6 h-6 text-indigo-500" /></div>
+                      <div><h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight text-left">Horario de Hoy</h3></div>
+                  </div>
+                  <button onClick={() => setIsScheduleModalOpen(true)} className="p-2.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 rounded-xl hover:scale-105 transition-all shadow-sm"><Plus className="w-5 h-5" /></button>
+              </div>
+              <div className="space-y-3 min-h-[120px] flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+                  {data.scheduleItems.length === 0 ? (
+                      <div className="text-center group">
+                          <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform"><Calendar className="w-7 h-7 text-slate-300 dark:text-slate-600" /></div>
+                          <p className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Agenda Limpia.<br/>Añade eventos importantes.</p>
+                      </div>
+                  ) : (
+                      <div className="w-full space-y-3">
+                          {data.scheduleItems.map(item => (
+                              <div key={item.id} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 group hover:border-indigo-500/30 transition-all">
+                                  <div className="flex items-center gap-4">
+                                      <div className="w-2 h-10 bg-indigo-500 rounded-full"></div>
+                                      <div className="text-left"><p className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight truncate max-w-[120px]">{item.title}</p><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.startTime} - {item.endTime}</p></div>
+                                  </div>
+                                  <button onClick={() => deleteScheduleItem(item.id)} className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><X className="w-4 h-4" /></button>
+                              </div>
+                          ))}
+                      </div>
+                  )}
+              </div>
+          </div>
+
+          <div className="widget-card !bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-950 border-indigo-800/30 shadow-2xl relative group overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform"><Quote className="w-24 h-24 text-indigo-400" /></div>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-400 mb-3 relative z-10 text-left">Mandamiento del Día</p>
+            <p className="text-xl italic font-serif leading-relaxed text-indigo-50 relative z-10 max-w-2xl text-left">"{settings.manifesto || 'La inacción no es neutral; es una elección activa por la mediocridad.'}"</p>
           </div>
         </div>
 
-        <div className="flex flex-col gap-5">
+        {/* Columna 3 */}
+        <div className="flex flex-col gap-6">
+          <div className="widget-card !bg-white dark:!bg-[#151518] border-slate-200 dark:border-slate-800 shadow-xl">
+              <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                      <div className="bg-blue-500/10 p-3 rounded-2xl"><Anchor className="w-6 h-6 text-blue-500" /></div>
+                      <div><h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight text-left">Bloque Sagrado</h3></div>
+                  </div>
+                  <button onClick={() => setIsSacredModalOpen(true)} className="p-2 text-slate-400 hover:text-blue-500 transition-colors"><Edit2 className="w-4 h-4" /></button>
+              </div>
+              <div className="min-h-[100px] flex items-center justify-center bg-slate-50 dark:bg-slate-800/30 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-6">
+                  {data.sacredBlocks.length > 0 ? (
+                      <div className="w-full space-y-4">
+                          {data.sacredBlocks.map((b, i) => (
+                              <div key={i} className="flex items-center justify-between">
+                                  <div className="flex flex-col text-left"><span className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">{b.day}</span><span className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">{b.label}</span></div>
+                                  <span className="text-[11px] font-black text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl">{b.time}</span>
+                              </div>
+                          ))}
+                      </div>
+                  ) : <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Sin bloques definidos.</span>}
+              </div>
+          </div>
+
+          <div className="relative">
           {data.englishWords.length > 0 ? (
             <LanguageWidget
               words={data.englishWords}
@@ -824,34 +976,46 @@ const DashboardTab = () => {
               onRegenerate={handleRegenerateLanguage}
             />
           ) : (
-            <div className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 flex flex-col items-center justify-center text-center">
+            <div className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 p-8 rounded-[2.5rem] border flex flex-col items-center justify-center text-center">
               <Loader2 className="w-8 h-8 text-indigo-400 animate-spin mb-4" />
-              <p className="text-white font-bold uppercase tracking-widest text-xs">Sincronizando Idiomas...</p>
+              <p className="text-slate-800 dark:text-white font-bold uppercase tracking-widest text-xs">Sincronizando Idiomas...</p>
             </div>
           )}
+          </div>
 
-          <div className="widget-card !bg-slate-900 border-slate-800">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-blue-500/10 p-3 rounded-2xl border border-blue-500/20"><Brain className="w-6 h-6 text-blue-400" /></div>
-              <div>
-                <h3 className="font-black text-white uppercase tracking-tight text-lg">Journal de Energía</h3>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Nivel diario</p>
+        </div>
+
+        {/* Cierre Nocturno - Ocupa todo el ancho inferior */}
+        <div className="lg:col-span-3 widget-card widget-card--violet !bg-slate-50 dark:!bg-[#151518] border-slate-200 dark:border-slate-800 shadow-2xl">
+          <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                  <div className="bg-indigo-500/10 p-3.5 rounded-3xl shadow-sm"><Moon className="w-7 h-7 text-indigo-500 dark:text-indigo-400" strokeWidth={2} /></div>
+                  <div className="text-left">
+                      <h3 className="text-xl font-bold tracking-tight text-slate-800 dark:text-white">Cierre Nocturno</h3>
+                      <p className="text-slate-500 text-[13px] font-medium mt-0.5">Optimización de Sueño</p>
+                  </div>
               </div>
-            </div>
-            <EnergySlider value={data.energyLevel} onChange={saveEnergyLevel} />
+              <div className="text-[#6366f1] font-bold text-sm">{Math.round((nightDone / nightHabitsList.length) * 100) || 0}%</div>
           </div>
-
-          <div className="widget-card !bg-gradient-to-br from-indigo-900 to-indigo-950 border-indigo-800/30">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-400 mb-6">Mandamiento del Día</p>
-            <p className="text-xl italic font-medium leading-relaxed text-slate-100 font-serif">"{settings.manifesto || 'La inacción no es neutral; es una elección activa por la mediocridad.'}"</p>
-          </div>
-
-          <div className="widget-card border-red-900/40 relative">
-             <button onClick={() => setIsFocusModalOpen(true)} className="absolute top-6 right-6 p-2 text-slate-500 hover:text-white"><Edit2 className="w-4 h-4" /></button>
-             <div className="flex items-center gap-2 mb-6"><Target className="w-5 h-5 text-red-500" /><h3 className="font-black text-white uppercase">Foco Semanal</h3></div>
-             <p className="text-lg font-black text-red-500 uppercase tracking-tight">{data.weeklyFocus.priority_1 || 'DEFINE TU ROCA'}</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pb-2">
+              {nightHabitsList.map(item => {
+                const isDone = data.nightHabits[item.key] === 1;
+                return (
+                  <button key={item.key} onClick={() => toggleNightHabit(item.key)} className={`flex flex-col justify-between p-4 rounded-3xl transition-all min-h-[100px] border-2 ${isDone ? `${item.theme.bg} border-transparent scale-[1.02] shadow-xl` : 'bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}>
+                    <div className="flex items-start justify-between w-full mb-3">
+                      <div className={`p-2 rounded-xl ${isDone ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{React.cloneElement(item.icon, { className: 'w-4 h-4' })}</div>
+                      {isDone ? <CheckCircle2 className="w-5 h-5 text-white" /> : <Circle className="w-5 h-5 text-slate-400 dark:text-slate-700" />}
+                    </div>
+                    <div className="text-left">
+                      <h4 className={`font-bold text-[11px] leading-tight mb-1 ${isDone ? 'text-white' : 'text-slate-700 dark:text-slate-200'}`}>{item.label}</h4>
+                      <p className={`text-[8px] font-medium opacity-70 ${isDone ? 'text-white' : 'text-slate-500'}`}>{item.subLabel}</p>
+                    </div>
+                  </button>
+                );
+              })}
           </div>
         </div>
+      </div>
       </div>
 
       {/* Modals */}
@@ -868,12 +1032,18 @@ const DashboardTab = () => {
               <button onClick={addScheduleItem} className="w-full py-4 bg-indigo-600 text-white font-black uppercase rounded-2xl">AÑADIR</button>
           </div>
       </Modal>
-      <Modal isOpen={isFocusModalOpen} onClose={() => setIsFocusModalOpen(false)} title="Foco">
+      <Modal isOpen={isReadingModalOpen} onClose={() => setIsReadingModalOpen(false)} title="Lectura Actual">
+          <div className="space-y-4 p-2">
+              <input type="text" id="r-in" defaultValue={data.reading?.current_book} placeholder="Título del libro" className="w-full p-4 bg-slate-800 rounded-2xl text-white outline-none" />
+              <Button onClick={() => saveReading(document.getElementById('r-in').value)} className="w-full py-4 bg-amber-600 text-white font-black uppercase rounded-2xl">GUARDAR LIBRO</Button>
+          </div>
+      </Modal>
+
+      <Modal isOpen={isFocusModalOpen} onClose={() => setIsFocusModalOpen(false)} title="Foco Semanal">
           <textarea defaultValue={data.weeklyFocus.priority_1} id="f-in" className="w-full p-4 bg-slate-800 rounded-2xl text-red-500 outline-none h-32 uppercase font-black" />
           <Button onClick={() => saveWeeklyFocus(document.getElementById('f-in').value)} className="w-full mt-4 py-4 bg-red-600">GUARDAR</Button>
       </Modal>
 
-      </div>
     </div>
   );
 };

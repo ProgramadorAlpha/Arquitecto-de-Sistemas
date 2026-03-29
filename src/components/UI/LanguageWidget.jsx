@@ -90,8 +90,8 @@ const LanguageModal = ({ currentLangId, currentLevelId, onSelectLang, onSelectLe
 const CompletedView = ({ score, total, lang, level }) => (
   <div className={`widget-card !bg-gradient-to-br ${lang?.color || 'from-slate-900 to-slate-800'} border ${lang?.border || 'border-slate-700'} h-full flex flex-col items-center justify-center text-center`}>
     <div className="flex items-center gap-3 mb-6">
-      <div className={`${lang?.accentBg || 'bg-indigo-500/20'} p-3 rounded-2xl`}>
-        <GraduationCap className={`w-6 h-6 ${lang?.accent || 'text-indigo-400'}`} />
+      <div className="bg-slate-500/20 p-3 rounded-2xl">
+        <GraduationCap className="w-6 h-6 text-slate-400" />
       </div>
       <div>
         <h3 className="font-black text-white uppercase tracking-tight">{lang?.emoji} {lang?.name || 'Idioma'}</h3>
@@ -136,12 +136,12 @@ const FlashcardPhase = ({ words, lang, level, onStartQuiz, onOpenModal, onRegene
   };
 
   return (
-    <div className={`widget-card border ${lang?.border || 'border-indigo-500/30'} !p-7 h-full bg-gradient-to-br from-slate-900 to-slate-900`}>
+    <div className={`widget-card border ${lang?.border || 'border-indigo-500/30'} !p-5 h-full bg-gradient-to-br from-slate-900 to-slate-900`}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className={`${lang?.accentBg || 'bg-indigo-500/20'} p-2.5 rounded-2xl`}>
-            <span className="text-xl">{lang?.emoji || '🌍'}</span>
+          <div className="bg-slate-500/20 p-2.5 rounded-2xl">
+            <GraduationCap className="w-5 h-5 text-slate-400" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -187,7 +187,7 @@ const FlashcardPhase = ({ words, lang, level, onStartQuiz, onOpenModal, onRegene
       </div>
 
       {/* 3D Flip Card */}
-      <div className="mb-4" style={{ perspective: '1200px', height: '260px' }}>
+      <div className="mb-4" style={{ perspective: '1200px', height: '200px' }}>
         <div
           onClick={flip}
           className="cursor-pointer relative w-full h-full transition-transform duration-500"
@@ -323,8 +323,8 @@ const QuizPhase = ({ words, lang, onFinish }) => {
     <div className={`widget-card border ${lang?.border || 'border-indigo-500/30'} !p-7 h-full bg-gradient-to-br from-slate-900 to-slate-900`}>
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className={`${lang?.accentBg || 'bg-indigo-500/20'} p-2.5 rounded-2xl`}>
-            <span className="text-xl">{lang?.emoji || '🌍'}</span>
+          <div className="bg-slate-500/20 p-2.5 rounded-2xl">
+            <GraduationCap className="w-5 h-5 text-slate-400" />
           </div>
           <div>
             <h3 className="font-black text-white text-[15px] uppercase tracking-tight">Quiz</h3>
