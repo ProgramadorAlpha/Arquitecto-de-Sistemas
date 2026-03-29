@@ -320,8 +320,8 @@ const QuizPhase = ({ words, lang, onFinish }) => {
   };
 
   return (
-    <div className={`widget-card border ${lang?.border || 'border-indigo-500/30'} !p-7 h-full bg-gradient-to-br from-slate-900 to-slate-900`}>
-      <div className="flex items-center justify-between mb-5">
+    <div className={`widget-card border ${lang?.border || 'border-indigo-500/30'} !p-5 h-full bg-gradient-to-br from-slate-900 to-slate-900`}>
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="bg-slate-500/20 p-2.5 rounded-2xl">
             <GraduationCap className="w-5 h-5 text-slate-400" />
@@ -406,8 +406,8 @@ const ResultsPhase = ({ score, total, answers, lang, level, levelUpInfo, onCompl
                   :             'border-amber-400 bg-amber-500/10 text-amber-400';
 
   return (
-    <div className={`widget-card border ${lang?.border || 'border-indigo-500/30'} !p-7 h-full overflow-y-auto`} style={{ scrollbarWidth: 'thin' }}>
-      <div className="flex items-center gap-3 mb-7">
+    <div className={`widget-card border ${lang?.border || 'border-indigo-500/30'} !p-5 h-full overflow-y-auto`} style={{ scrollbarWidth: 'thin' }}>
+      <div className="flex items-center gap-3 mb-5">
         <div className={`${lang?.accentBg || 'bg-indigo-500/20'} p-2.5 rounded-2xl`}>
           <Trophy className={`w-5 h-5 ${lang?.accent || 'text-indigo-400'}`} />
         </div>
