@@ -97,8 +97,8 @@ const App = () => {
               <Menu size={20} strokeWidth={2.5} />
             </button>
             {/* Saludo personalizado */}
-            <div>
-              <h2 className="text-white font-black text-sm md:text-base leading-tight">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-white font-black text-sm md:text-base leading-tight truncate max-w-[220px] sm:max-w-sm md:max-w-none">
                 {greeting}, {firstName} <span className="inline-block animate-[wave_1.5s_ease_1]" style={{display:'inline-block'}}>👋</span>
               </h2>
               <p className="text-[10px] md:text-xs text-slate-500 font-medium capitalize hidden sm:block">{todayLabel}</p>

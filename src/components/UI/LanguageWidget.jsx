@@ -80,30 +80,82 @@ const getLevel = () => LEVELS.find(l   => l.id === (localStorage.getItem(LEVEL_K
 /* ══════════════════════════════════════════════════════
    MODAL — Selector de Idioma
 ══════════════════════════════════════════════════════ */
-// El modal de cambio de idioma ahora se maneja en la pestaña "Idiomas" para una UI más limpia.
-// Mantenemos una versión simplificada aquí si fuera necesario o lo quitamos para centralizar.
-const LanguageModal = ({ currentLangId, currentLevelId, onSelectLang, onSelectLevel, onClose }) => null;
+const LanguageModal = ({ currentLangId, currentLevelId, onSelectLang, onSelectLevel, onClose }) => {
+  return (
+    <div className="absolute inset-0 z-[100] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-[2.5rem] p-6 sm:p-8 flex flex-col animate-in fade-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700/50">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h3 className="text-slate-800 dark:text-white text-xl font-black uppercase tracking-tight">Preferencias</h3>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Configura tu aprendizaje</p>
+        </div>
+        <button onClick={onClose} className="p-3 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors border border-slate-200 dark:border-slate-700/50 shadow-sm">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto space-y-8 flex-col pr-2" style={{ scrollbarWidth: 'none' }}>
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Globe className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Idioma Objetivo</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {LANGUAGES.map(l => (
+              <button key={l.id} onClick={() => onSelectLang(l)} className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all ${currentLangId === l.id ? 'bg-indigo-50 dark:bg-indigo-500/20 border-indigo-200 dark:border-indigo-500/50 text-indigo-700 dark:text-indigo-300 shadow-lg shadow-indigo-500/10 scale-[1.02]' : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600'}`}>
+                <span className="text-2xl text-slate-800 dark:text-white font-black drop-shadow-sm dark:drop-shadow-md">{l.emoji}</span>
+                <span className="font-bold text-sm tracking-wide text-slate-600 dark:text-slate-200">{l.name}</span>
+                {currentLangId === l.id && <Check className="w-4 h-4 ml-auto text-indigo-600 dark:text-indigo-400" />}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest">Nivel de Dominio</p>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {LEVELS.map(lvl => (
+              <button key={lvl.id} onClick={() => onSelectLevel(lvl)} className={`flex flex-col items-center justify-center py-4 px-2 rounded-2xl border transition-all ${currentLevelId === lvl.id ? 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-200 dark:border-emerald-500/50 text-emerald-700 dark:text-emerald-400 shadow-lg shadow-emerald-500/10 scale-[1.02]' : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600'}`}>
+                <span className="font-black text-lg mb-1">{lvl.id}</span>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-center">{lvl.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      <div className="pt-6 mt-2 border-t border-slate-200 dark:border-slate-800/50">
+        <button onClick={onClose} className="w-full py-4 rounded-2xl bg-indigo-600 dark:bg-indigo-500 hover:brightness-110 active:scale-[0.98] text-white font-black text-xs uppercase tracking-widest flex items-center justify-center transition-all shadow-lg shadow-indigo-500/20">
+          Guardar Cambios
+        </button>
+      </div>
+    </div>
+  );
+};
 
 /* ══════════════════════════════════════════════════════
    PHASE: COMPLETED
 ══════════════════════════════════════════════════════ */
 const CompletedView = ({ score, total, lang, level }) => (
-  <div className={`widget-card !bg-gradient-to-br ${lang?.color || 'from-slate-900 to-slate-800'} border ${lang?.border || 'border-slate-700'} h-full flex flex-col items-center justify-center text-center`}>
-    <div className="flex items-center gap-3 mb-6">
-      <div className="bg-slate-500/20 p-3 rounded-2xl">
-        <GraduationCap className="w-6 h-6 text-slate-400" />
+  <div className={`widget-card !bg-white dark:!bg-gradient-to-br dark:${lang?.color || 'from-slate-900 to-slate-800'} border border-slate-200 dark:${lang?.border?.replace('border-') || 'border-slate-700'} h-full flex flex-col items-center justify-center text-center relative overflow-hidden`}>
+    <div className={`absolute top-[-20%] right-[-10%] w-64 h-64 blur-3xl rounded-full opacity-[0.15] dark:opacity-20 pointer-events-none ${lang?.badgeBg || 'bg-indigo-500'}`}></div>
+    <div className="flex items-center gap-3 mb-6 relative z-10">
+      <div className="bg-slate-100 dark:bg-slate-500/20 p-3 rounded-2xl">
+        <GraduationCap className="w-6 h-6 text-slate-500 dark:text-slate-400" />
       </div>
       <div>
-        <h3 className="font-black text-white uppercase tracking-tight">{lang?.emoji} {lang?.name || 'Idioma'}</h3>
+        <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tight">{lang?.emoji} {lang?.name || 'Idioma'}</h3>
         <p className={`text-[10px] font-bold ${lang?.accent || 'text-emerald-500'} uppercase tracking-widest`}>Sesión de hoy completada ✓ · Nivel {level?.id}</p>
       </div>
     </div>
-    <Trophy className="w-16 h-16 text-amber-400 mb-4" />
-    <p className="font-black text-white text-xl mb-1">¡Vocabulario dominado!</p>
+    <Trophy className="w-16 h-16 text-amber-500 dark:text-amber-400 mb-4 drop-shadow-[0_0_15px_rgba(251,191,36,0.3)] relative z-10" />
+    <p className="font-black text-slate-800 dark:text-white text-xl mb-1 relative z-10">¡Vocabulario dominado!</p>
     {score !== undefined && (
-      <p className="text-emerald-400 font-bold text-sm">{score}/{total} respuestas correctas</p>
+      <p className="text-emerald-600 dark:text-emerald-400 font-bold text-sm tracking-wide relative z-10">{score}/{total} respuestas correctas</p>
     )}
-    <p className="text-slate-500 text-sm mt-1">Vuelve mañana para nuevas palabras</p>
+    <p className="text-slate-500 dark:text-slate-400 text-sm mt-3 bg-slate-50 dark:bg-black/20 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/5 relative z-10">Vuelve mañana para nuevas palabras</p>
   </div>
 );
 
@@ -136,52 +188,62 @@ const FlashcardPhase = ({ words, lang, level, onStartQuiz, onOpenModal, onRegene
   };
 
   return (
-    <div className={`widget-card border ${lang?.border || 'border-indigo-500/30'} !p-5 h-full bg-gradient-to-br from-slate-900 to-slate-900`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="bg-slate-500/20 p-2.5 rounded-2xl">
-            <GraduationCap className="w-5 h-5 text-slate-400" />
+    <div className={`widget-card border ${lang?.border || 'border-indigo-500/30'} !p-6 h-full bg-white dark:bg-slate-900 overflow-hidden relative`}>
+      {/* Glow Effects */}
+      <div className={`absolute top-[-20%] left-[-10%] w-64 h-64 blur-3xl rounded-full opacity-[0.15] pointer-events-none ${lang?.badgeBg || 'bg-indigo-500'}`}></div>
+
+      {/* Header Redesign - Más prominente e interactivo */}
+      <div className="relative overflow-hidden rounded-[1.5rem] bg-slate-50 dark:bg-gradient-to-r dark:from-slate-800/80 dark:to-slate-800/40 border border-slate-200 dark:border-slate-700/50 p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group shadow-lg shadow-black/5 dark:shadow-black/20">
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="relative">
+            <div className={`absolute inset-0 blur-md opacity-50 ${lang?.badgeBg || 'bg-indigo-500'}`}></div>
+            <div className={`relative w-14 h-14 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 shadow-inner flex items-center justify-center transform group-hover:scale-105 transition-transform duration-300`}>
+              <span className="text-2xl text-slate-800 dark:text-white font-black drop-shadow-sm dark:drop-shadow-md leading-none">{lang?.emoji || '🌍'}</span>
+            </div>
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-black text-white text-[15px] uppercase tracking-tight">{lang?.name || 'Idioma'}</h3>
-              <span className={`text-[9px] font-black px-2 py-0.5 rounded-lg ${level?.bg || 'bg-slate-800'} ${level?.color || 'text-slate-400'} border border-white/10`}>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-black text-slate-800 dark:text-white text-lg sm:text-lg uppercase tracking-tight leading-none text-shadow-sm">{lang?.name || 'Idioma'}</h3>
+              <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${level?.bg || 'bg-slate-100 dark:bg-slate-800'} ${level?.color || 'text-slate-500 dark:text-slate-400'} border border-slate-200 dark:border-white/10 shadow-sm leading-none tracking-wider`}>
                 {level?.id || 'B2'}
               </span>
             </div>
-            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Vocabulario del día</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+              <span>Vocabulario</span>
+              <span className="opacity-40">•</span>
+              <span className={`${lang?.accent || 'text-indigo-400'} drop-shadow-sm`}>{words.length} Palabras</span>
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        
+        <div className="flex items-center gap-2 relative z-10 sm:ml-auto">
           {onRegenerate && (
             <button
               onClick={onRegenerate}
-              className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all border border-white/5"
-              title="Regenerar hoy"
+              className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-all border border-slate-200 dark:border-slate-700/50 shadow-sm"
+              title="Regenerar palabras de hoy"
             >
               <RefreshCcw className="w-4 h-4" />
             </button>
           )}
           <button
             onClick={onOpenModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all text-[10px] font-bold uppercase tracking-wider"
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 rounded-xl ${lang?.accentBg || 'bg-indigo-500/15'} hover:brightness-125 transition-all text-xs font-black uppercase tracking-widest ${lang?.accent || 'text-indigo-400'} border ${lang?.border || 'border-indigo-500/30'} shadow-sm`}
             title="Cambiar idioma o nivel"
           >
-            <Globe className="w-3.5 h-3.5" />
             Cambiar
-            <ChevronDown className="w-3 h-3" />
+            <ChevronDown className="w-3.5 h-3.5 opacity-70" />
           </button>
         </div>
       </div>
 
       {/* Dot nav */}
-      <div className="flex gap-1.5 justify-center mb-4">
+      <div className="flex gap-1.5 justify-center mb-5">
         {words.map((_, i) => (
           <div
             key={i}
             onClick={() => { setFlipped(false); setTimeout(() => setCurrentIndex(i), 160); }}
-            className={`cursor-pointer h-2 rounded-full transition-all ${currentIndex === i ? `w-6 ${lang?.accent ? lang.accent.replace('text-', 'bg-') : 'bg-indigo-500'}` : 'w-2 bg-slate-700 hover:bg-slate-600'}`}
+            className={`cursor-pointer h-2 rounded-full transition-all ${currentIndex === i ? `w-6 ${lang?.accent ? lang.accent.replace('text-', 'bg-') : 'bg-indigo-500'}` : 'w-2 bg-slate-300 hover:bg-slate-400 dark:bg-slate-700 dark:hover:bg-slate-600'}`}
           />
         ))}
       </div>
@@ -195,7 +257,7 @@ const FlashcardPhase = ({ words, lang, level, onStartQuiz, onOpenModal, onRegene
         >
           {/* FRONT */}
           <div
-            className="absolute inset-0 flex flex-col items-center justify-center bg-slate-800/70 rounded-[2rem] border border-slate-700/50 p-6 text-center overflow-hidden"
+            className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/70 rounded-[2rem] border border-slate-200 dark:border-slate-700/50 p-6 text-center overflow-hidden shadow-sm md:shadow-none"
             style={{ backfaceVisibility: 'hidden' }}
           >
             <div className="flex gap-2 mb-3">
@@ -203,11 +265,11 @@ const FlashcardPhase = ({ words, lang, level, onStartQuiz, onOpenModal, onRegene
               {word.category && <span className={`text-[9px] font-black px-2.5 py-0.5 rounded-lg uppercase tracking-wider ${categoryColor[word.category] || 'bg-slate-600/50 text-slate-400'}`}>{word.category}</span>}
             </div>
             <div className="flex-1 flex flex-col items-center justify-center min-h-0 w-full">
-              <h4 className={`font-black text-white mb-2 leading-tight break-words w-full px-2 ${word.word?.length > 12 ? 'text-2xl' : 'text-3xl md:text-4xl'}`}>
+              <h4 className={`font-black text-slate-800 dark:text-white mb-2 leading-tight break-words w-full px-2 ${word.word?.length > 12 ? 'text-2xl' : 'text-3xl md:text-4xl'}`}>
                 {word.word}
               </h4>
               <div className="flex flex-col gap-1.5 items-center">
-                <p className="font-mono text-slate-400 text-xs md:text-sm bg-slate-900/50 px-3 py-0.5 rounded-full border border-slate-700/30">
+                <p className="font-mono text-slate-500 dark:text-slate-400 text-xs md:text-sm bg-white dark:bg-slate-900/50 px-3 py-0.5 rounded-full border border-slate-200 dark:border-slate-700/30">
                   {word.phonetic}
                 </p>
                 {word.pronunciation && (
@@ -217,19 +279,19 @@ const FlashcardPhase = ({ words, lang, level, onStartQuiz, onOpenModal, onRegene
                 )}
               </div>
             </div>
-            <p className="text-slate-600 text-[9px] uppercase tracking-[0.2em] mt-auto pt-4">Toca para ver traducción →</p>
+            <p className="text-slate-400 dark:text-slate-600 text-[9px] uppercase tracking-[0.2em] mt-auto pt-4 transition-colors group-hover:text-slate-500">Toca para ver traducción →</p>
           </div>
 
           {/* BACK */}
           <div
-            className={`absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br ${lang?.color || 'from-indigo-900/40 to-purple-900/20'} rounded-[2rem] border ${lang?.border || 'border-indigo-500/30'} p-6 text-center overflow-hidden`}
+            className={`absolute inset-0 flex flex-col items-center justify-center bg-slate-50 dark:bg-gradient-to-br dark:${lang?.color || 'from-indigo-900/40 to-purple-900/20'} rounded-[2rem] border border-slate-200 dark:${lang?.border?.replace('border-', '') || 'border-indigo-500/30'} p-6 text-center overflow-hidden shadow-sm`}
             style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
           >
             <p className={`text-[10px] font-bold ${lang?.accent || 'text-indigo-400'} uppercase tracking-widest mb-1`}>Traducción · Español</p>
-            <p className={`${word.translation && word.translation.length > 15 ? 'text-xl' : 'text-3xl'} font-black text-white mb-2 leading-tight tracking-tighter`}>{word.translation}</p>
-            {word.meaning && <p className="text-slate-400 text-[13px] mb-3 leading-relaxed">{word.meaning}</p>}
-            <div className="bg-white/5 rounded-2xl px-4 py-2.5 w-full">
-              <p className="text-slate-300 text-xs italic leading-relaxed">"{word.example}"</p>
+            <p className={`${word.translation && word.translation.length > 15 ? 'text-xl' : 'text-3xl'} font-black text-slate-800 dark:text-white mb-2 leading-tight tracking-tighter`}>{word.translation}</p>
+            {word.meaning && <p className="text-slate-600 dark:text-slate-400 text-[13px] mb-3 leading-relaxed">{word.meaning}</p>}
+            <div className="bg-white dark:bg-white/5 rounded-2xl px-4 py-2.5 w-full border border-slate-200 dark:border-transparent">
+              <p className="text-slate-500 dark:text-slate-300 text-xs italic leading-relaxed">"{word.example}"</p>
             </div>
           </div>
         </div>
@@ -238,18 +300,18 @@ const FlashcardPhase = ({ words, lang, level, onStartQuiz, onOpenModal, onRegene
       {/* Controls */}
       <div className="flex items-center justify-between mb-4">
         <button onClick={() => speak(word.word, lang?.locale || 'en-US')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 transition-all text-xs font-bold group">
+          className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-slate-600 dark:text-slate-300 transition-all text-xs font-bold group border border-slate-200 dark:border-transparent">
           <Volume2 className={`w-4 h-4 group-hover:${lang?.accent?.replace('text-','text-') || 'text-indigo-400'} transition-colors`} />
           Escuchar
         </button>
         <div className="flex gap-2">
           <button onClick={() => navigate(-1)} disabled={currentIndex === 0}
-            className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 disabled:opacity-30 transition-all">
+            className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-slate-500 dark:text-slate-300 disabled:opacity-30 transition-all border border-slate-200 dark:border-transparent">
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="flex items-center px-3 text-[11px] font-black text-slate-500">{currentIndex + 1} / {words.length}</span>
+          <span className="flex items-center px-3 text-[11px] font-black text-slate-400 dark:text-slate-500">{currentIndex + 1} / {words.length}</span>
           <button onClick={() => navigate(1)} disabled={currentIndex === words.length - 1}
-            className="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 disabled:opacity-30 transition-all">
+            className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-slate-500 dark:text-slate-300 disabled:opacity-30 transition-all border border-slate-200 dark:border-transparent">
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -320,20 +382,20 @@ const QuizPhase = ({ words, lang, onFinish }) => {
   };
 
   return (
-    <div className={`widget-card border ${lang?.border || 'border-indigo-500/30'} !p-5 h-full bg-gradient-to-br from-slate-900 to-slate-900`}>
+    <div className={`widget-card border ${lang?.border || 'border-indigo-500/30'} !p-5 h-full bg-white dark:bg-slate-900`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="bg-slate-500/20 p-2.5 rounded-2xl">
-            <GraduationCap className="w-5 h-5 text-slate-400" />
+          <div className="bg-slate-100 dark:bg-slate-500/20 p-2.5 rounded-2xl">
+            <GraduationCap className="w-5 h-5 text-slate-500 dark:text-slate-400" />
           </div>
           <div>
-            <h3 className="font-black text-white text-[15px] uppercase tracking-tight">Quiz</h3>
+            <h3 className="font-black text-slate-800 dark:text-white text-[15px] uppercase tracking-tight">Quiz</h3>
             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{lang?.name || 'Idioma'}</p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20">
-          <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-          <span className="font-black text-amber-400 text-sm">{score}</span>
+        <div className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20">
+          <Star className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 fill-amber-500 dark:fill-amber-400" />
+          <span className="font-black text-amber-500 dark:text-amber-400 text-sm">{score}</span>
           <span className="text-slate-500 text-xs">/{words.length}</span>
         </div>
       </div>
@@ -343,22 +405,22 @@ const QuizPhase = ({ words, lang, onFinish }) => {
         {words.map((_, i) => (
           <div key={i} className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${
             i < quizIndex ? (lang?.id === 'english' ? 'bg-indigo-500' : lang?.id === 'spanish' ? 'bg-red-500' : lang?.id === 'portuguese' ? 'bg-emerald-500' : lang?.id === 'french' ? 'bg-blue-500' : lang?.id === 'italian' ? 'bg-rose-500' : 'bg-amber-500') :
-            i === quizIndex ? 'bg-slate-400' : 'bg-slate-700/50'
+            i === quizIndex ? 'bg-slate-300 dark:bg-slate-400' : 'bg-slate-100 dark:bg-slate-700/50'
           }`} />
         ))}
       </div>
 
       {/* Word card */}
-      <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 mb-5 text-center">
+      <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-6 mb-5 text-center">
         <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">¿Qué significa?</p>
         <div className="flex items-center justify-center gap-3 mb-2">
-          <h4 className="text-3xl font-black text-white">{word.word}</h4>
+          <h4 className="text-3xl font-black text-slate-800 dark:text-white">{word.word}</h4>
           <button onClick={() => speak(word.word, lang?.locale || 'en-US')}
-            className="p-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-slate-300 transition-all">
+            className="p-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-xl text-slate-500 dark:text-slate-300 transition-all">
             <Volume2 className="w-4 h-4" />
           </button>
         </div>
-        <span className="font-mono text-slate-400 text-sm">{word.phonetic}</span>
+        <span className="font-mono text-slate-500 dark:text-slate-400 text-sm">{word.phonetic}</span>
       </div>
 
       {/* Options */}
@@ -366,11 +428,11 @@ const QuizPhase = ({ words, lang, onFinish }) => {
         {options.map((opt, i) => {
           const isCorrect  = opt === word.translation;
           const isSelected = selected === opt;
-          let cls = 'border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:border-slate-600 cursor-pointer';
+          let cls = 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer';
           if (selected !== null) {
-            if (isCorrect)       cls = 'border-emerald-500 bg-emerald-500/15 text-emerald-300 cursor-default';
-            else if (isSelected) cls = 'border-red-500 bg-red-500/15 text-red-300 cursor-default';
-            else                 cls = 'border-slate-800 bg-slate-800/30 text-slate-600 opacity-40 cursor-default';
+            if (isCorrect)       cls = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 cursor-default';
+            else if (isSelected) cls = 'border-red-500 bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-300 cursor-default';
+            else                 cls = 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30 text-slate-400 dark:text-slate-600 opacity-60 dark:opacity-40 cursor-default';
           }
           return (
             <button key={i} onClick={() => handleAnswer(opt)} disabled={selected !== null}
@@ -382,7 +444,7 @@ const QuizPhase = ({ words, lang, onFinish }) => {
       </div>
 
       {selected !== null && (
-        <div className={`p-4 rounded-2xl text-sm leading-relaxed transition-all ${selected === word.translation ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300' : 'bg-red-500/10 border border-red-500/20 text-red-300'}`}>
+        <div className={`p-4 rounded-2xl text-sm leading-relaxed transition-all ${selected === word.translation ? 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-300'}`}>
           {selected === word.translation
             ? <><span className="font-black">✅ ¡Correcto!</span> "{word.example}"</>
             : <><span className="font-black">❌ Era:</span> {word.translation} — {word.meaning}</>
@@ -401,29 +463,29 @@ const ResultsPhase = ({ score, total, answers, lang, level, levelUpInfo, onCompl
   const isPerfect = score === total;
   const isGood    = score >= Math.ceil(total / 2);
 
-  const colorRing = isPerfect ? 'border-emerald-400 bg-emerald-500/10 text-emerald-400'
-                  : isGood    ? 'border-blue-400 bg-blue-500/10 text-blue-400'
-                  :             'border-amber-400 bg-amber-500/10 text-amber-400';
+  const colorRing = isPerfect ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                  : isGood    ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                  :             'border-amber-500 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400';
 
   return (
-    <div className={`widget-card border ${lang?.border || 'border-indigo-500/30'} !p-5 h-full overflow-y-auto`} style={{ scrollbarWidth: 'thin' }}>
+    <div className={`widget-card border ${lang?.border || 'border-indigo-500/30'} !p-5 h-full overflow-y-auto bg-white dark:bg-slate-900`} style={{ scrollbarWidth: 'thin' }}>
       <div className="flex items-center gap-3 mb-5">
         <div className={`${lang?.accentBg || 'bg-indigo-500/20'} p-2.5 rounded-2xl`}>
           <Trophy className={`w-5 h-5 ${lang?.accent || 'text-indigo-400'}`} />
         </div>
         <div>
-          <h3 className="font-black text-white text-[15px] uppercase tracking-tight">Resultados</h3>
+          <h3 className="font-black text-slate-800 dark:text-white text-[15px] uppercase tracking-tight">Resultados</h3>
           <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{lang?.name} · Nivel {level?.id}</p>
         </div>
       </div>
 
       {/* Level Up Banner */}
       {levelUpInfo && (
-        <div className="mb-5 p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 to-yellow-500/10 border border-amber-500/30 flex items-center gap-3">
-          <TrendingUp className="w-6 h-6 text-amber-400 shrink-0" />
+        <div className="mb-5 p-4 rounded-2xl bg-amber-50 dark:bg-gradient-to-r dark:from-amber-500/20 dark:to-yellow-500/10 border border-amber-200 dark:border-amber-500/30 flex items-center gap-3">
+          <TrendingUp className="w-6 h-6 text-amber-500 dark:text-amber-400 shrink-0" />
           <div>
-            <p className="font-black text-amber-300 text-sm">¡Subiste de nivel!</p>
-            <p className="text-amber-500/80 text-[11px]">{levelUpInfo.from} → <strong className="text-amber-300">{levelUpInfo.to}</strong> · {levelUpInfo.message}</p>
+            <p className="font-black text-amber-600 dark:text-amber-300 text-sm">¡Subiste de nivel!</p>
+            <p className="text-amber-700 dark:text-amber-500/80 text-[11px]">{levelUpInfo.from} → <strong className="text-amber-600 dark:text-amber-300">{levelUpInfo.to}</strong> · {levelUpInfo.message}</p>
           </div>
         </div>
       )}
@@ -434,7 +496,7 @@ const ResultsPhase = ({ score, total, answers, lang, level, levelUpInfo, onCompl
           <span className="text-4xl font-black">{score}/{total}</span>
           <span className="text-[10px] font-bold text-slate-500 uppercase">{pct}%</span>
         </div>
-        <p className="text-xl font-black text-white">
+        <p className="text-xl font-black text-slate-800 dark:text-white">
           {isPerfect ? '¡Perfecto! 🏆' : isGood ? '¡Bien hecho! 💪' : 'Sigue practicando 📚'}
         </p>
         <p className="text-slate-400 text-sm mt-1">
@@ -442,7 +504,7 @@ const ResultsPhase = ({ score, total, answers, lang, level, levelUpInfo, onCompl
         </p>
         {/* Streak info */}
         {pct >= 80 && (
-          <div className="mt-3 flex items-center gap-2 text-emerald-400 text-[11px] font-bold">
+          <div className="mt-3 flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">
             <TrendingUp className="w-3.5 h-3.5" />
             ≥80% · Racha de nivel activa
           </div>
@@ -452,17 +514,17 @@ const ResultsPhase = ({ score, total, answers, lang, level, levelUpInfo, onCompl
       {/* Per-word breakdown */}
       <div className="space-y-2 mb-6">
         {answers.map((a, i) => (
-          <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${a.correct ? 'bg-emerald-500/8 border border-emerald-500/15' : 'bg-red-500/8 border border-red-500/15'}`}>
+          <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border ${a.correct ? 'bg-emerald-50/50 dark:bg-emerald-500/8 border-emerald-200 dark:border-emerald-500/15' : 'bg-red-50/50 dark:bg-red-500/8 border-red-200 dark:border-red-500/15'}`}>
             <span>{a.correct ? '✅' : '❌'}</span>
-            <span className="font-bold text-white text-sm flex-1">{a.word}</span>
-            {!a.correct && <span className="text-[10px] text-slate-400 italic">→ {a.correctAnswer}</span>}
+            <span className="font-bold text-slate-800 dark:text-white text-sm flex-1">{a.word}</span>
+            {!a.correct && <span className="text-[10px] text-slate-500 dark:text-slate-400 italic">→ {a.correctAnswer}</span>}
           </div>
         ))}
       </div>
 
       {/* Actions */}
       <div className="flex gap-3">
-        <button onClick={onRestart} className="flex-1 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all">
+        <button onClick={onRestart} className="flex-1 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all">
           <RotateCcw className="w-3.5 h-3.5" />
           Repasar
         </button>

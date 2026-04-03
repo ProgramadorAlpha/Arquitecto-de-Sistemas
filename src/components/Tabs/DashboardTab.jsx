@@ -34,7 +34,8 @@ import {
   MonitorOff,
   Briefcase,
   Heart,
-  Activity
+  Activity,
+  X as CloseIcon
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { 
@@ -173,9 +174,12 @@ const DashboardTab = () => {
   const [modals, setModals] = useState({
     sacred: false,
     reading: false,
+    reading_input: '',
     focus: false,
+    focus_input: '',
     schedule: false,
-    newEvent: { title: '', category: 'Deep Work', startTime: '09:00', endTime: '10:00' }
+    newEvent: { title: '', category: 'Deep Work', startTime: '09:00', endTime: '10:00' },
+    isSaving: false
   });
 
   // Referencias estables
@@ -184,7 +188,7 @@ const DashboardTab = () => {
 
   // Desestructuración y alias para compatibilidad con código existente
   const { loading, settings, langId, levelId, langSuccessStreak, levelUpToast } = uiState;
-  const { sacred: isSacredModalOpen, reading: isReadingModalOpen, focus: isFocusModalOpen, schedule: isScheduleModalOpen, newEvent } = modals;
+  const { sacred: isSacredModalOpen, reading: isReadingModalOpen, focus: isFocusModalOpen, schedule: isScheduleModalOpen, newEvent, isSaving } = modals;
 
   // Helpers de estado (en lugar de setters directos)
   const setLoading = (l) => setUiState(p => ({ ...p, loading: l }));
@@ -548,13 +552,23 @@ const DashboardTab = () => {
   };
 
   const saveReading = async (book) => {
-    await setDoc(doc(db, 'users', user.uid, 'settings', 'reading'), { current_book: book }, { merge: true });
-    setIsReadingModalOpen(false);
+    if (!book?.trim()) return setIsReadingModalOpen(false);
+    try {
+      await setDoc(doc(db, 'users', user.uid, 'settings', 'reading'), { current_book: book.trim() }, { merge: true });
+      setIsReadingModalOpen(false);
+    } catch (e) {
+      console.error("Error saving reading:", e);
+    }
   };
 
   const saveWeeklyFocus = async (focus) => {
-    await setDoc(doc(db, 'users', user.uid, 'weekly', weekId), { priority_1: focus }, { merge: true });
-    setIsFocusModalOpen(false);
+    if (!focus?.trim()) return setIsFocusModalOpen(false);
+    try {
+      await setDoc(doc(db, 'users', user.uid, 'weekly', weekId), { priority_1: focus.trim() }, { merge: true });
+      setIsFocusModalOpen(false);
+    } catch (e) {
+      console.error("Error saving focus:", e);
+    }
   };
 
   const saveEnergyLevel = async (level) => {
@@ -575,20 +589,71 @@ const DashboardTab = () => {
     await setDoc(doc(db, 'users', user.uid, 'daily_content', today), { planBActive: newState }, { merge: true });
   };
 
+  /**
+   * AÑADIR ITEM AL HORARIO
+   * Optimizado para móvil con guardado atómico y feedback instantáneo
+   */
   const addScheduleItem = async () => {
-    if (!newEvent.title.trim()) return;
-    const item = { ...newEvent, id: Date.now().toString() };
-    const updated = [...data.scheduleItems, item].sort((a, b) => a.startTime.localeCompare(b.startTime));
-    setData(prev => ({ ...prev, scheduleItems: updated }));
-    await setDoc(doc(db, 'users', user.uid, 'schedule', today), { items: updated }, { merge: true });
-    setNewEvent({ title: '', category: 'Deep Work', startTime: '09:00', endTime: '10:00' });
-    setIsScheduleModalOpen(false);
+    if (!newEvent.title || !newEvent.title.trim() || modals.isSaving) return;
+    
+    setModals(prev => ({ ...prev, isSaving: true }));
+    
+    try {
+      const scheduleId = Date.now().toString();
+      const item = { 
+        ...newEvent, 
+        id: scheduleId,
+        title: newEvent.title.trim(),
+        completed: false 
+      };
+      
+      const currentItems = Array.isArray(data.scheduleItems) ? data.scheduleItems : [];
+      
+      // Evitar duplicados exactos
+      const exists = currentItems.some(i => i.title === item.title && i.startTime === item.startTime);
+      if (exists) {
+        setModals(p => ({ ...p, isSaving: false, schedule: false }));
+        return;
+      }
+
+      const updated = [...currentItems, item].sort((a, b) => 
+        (a.startTime || '00:00').localeCompare(b.startTime || '00:00')
+      );
+
+      // 1. Persistir en Firebase PRIMERO (más seguro)
+      const scheduleRef = doc(db, 'users', user.uid, 'schedule', today);
+      await setDoc(scheduleRef, { items: updated }, { merge: true });
+      
+      // 2. Feedback local (opcional porque onSnapshot lo traerá, pero da velocidad)
+      setData(prev => ({ ...prev, scheduleItems: updated }));
+      
+      // 3. Limpiar estado de entrada y cerrar modal
+      setModals(prev => ({ 
+        ...prev, 
+        schedule: false, 
+        isSaving: false,
+        newEvent: { title: '', category: 'Deep Work', startTime: '09:00', endTime: '10:00' }
+      }));
+
+    } catch (error) {
+      console.error("CRITICAL ERROR: Failed to save schedule item", error);
+      setModals(prev => ({ ...prev, isSaving: false }));
+      // Aquí el ErrorBoundary o un log especial capturaría el fallo en móvil
+    }
   };
 
   const deleteScheduleItem = async (id) => {
-    const updated = data.scheduleItems.filter(i => i.id !== id);
-    setData(prev => ({ ...prev, scheduleItems: updated }));
-    await setDoc(doc(db, 'users', user.uid, 'schedule', today), { items: updated }, { merge: true });
+    if (!id) return;
+    try {
+      const currentItems = Array.isArray(data.scheduleItems) ? data.scheduleItems : [];
+      const updated = currentItems.filter(i => i.id !== id);
+      
+      // Persistencia atómica
+      await setDoc(doc(db, 'users', user.uid, 'schedule', today), { items: updated }, { merge: true });
+      setData(prev => ({ ...prev, scheduleItems: updated }));
+    } catch (error) {
+      console.error("CRITICAL ERROR: Failed to delete schedule item", error);
+    }
   };
 
   return (
@@ -751,10 +816,10 @@ const DashboardTab = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mx-auto items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mx-auto items-start dashboard-main-grid">
         {/* Columna 1 */}
-        <div className="flex flex-col gap-6">
-          <div className="widget-card bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border-amber-500/20 shadow-2xl overflow-hidden relative">
+        <div className="flex flex-col gap-6 dashboard-col-1">
+          <div className="widget-card bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border-amber-500/20 shadow-2xl overflow-hidden relative widget-tesla">
             <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 blur-[80px]"></div>
             <div className="flex justify-between items-start relative z-10 mb-6">
               <div>
@@ -811,7 +876,7 @@ const DashboardTab = () => {
             </div>
           </div>
 
-          <div className="widget-card !bg-white dark:!bg-[#151518] border-red-500/20 dark:border-red-900/40 relative shadow-2xl group">
+          <div className="widget-card !bg-white dark:!bg-[#151518] border-red-500/20 dark:border-red-900/40 relative shadow-2xl group widget-foco">
              <button onClick={() => setIsFocusModalOpen(true)} className="absolute top-6 right-6 p-2 text-slate-400 hover:text-red-500 transition-all"><Edit2 className="w-5 h-5" /></button>
              <div className="flex items-center gap-3 mb-6">
                  <div className="bg-red-500/10 p-3 rounded-2xl"><Target className="w-6 h-6 text-red-500" /></div>
@@ -820,12 +885,12 @@ const DashboardTab = () => {
              <p className="text-2xl font-black text-red-500 uppercase tracking-tighter leading-none text-left">{data.weeklyFocus.priority_1 || 'DEFINE TU ROCA'}</p>
           </div>
 
-          <div className="widget-card !bg-white dark:!bg-[#151518] border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden relative">
+          <div className="widget-card !bg-white dark:!bg-[#151518] border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden relative widget-lectura">
               <div className="flex items-center gap-4 mb-6">
                   <div className="bg-emerald-500/10 p-3 rounded-2xl"><BookOpen className="w-6 h-6 text-emerald-500" /></div>
                   <div><h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight text-left">Lectura Actual</h3></div>
               </div>
-              <div className="flex flex-col items-center justify-center min-h-[140px] text-center p-4">
+              <div className="flex flex-col items-center justify-center min-h-[80px] text-center p-4">
                   {!data.reading?.current_book ? (
                       <button onClick={() => setIsReadingModalOpen(true)} className="text-xs font-black text-slate-400 hover:text-emerald-500 uppercase tracking-[0.2em] transition-colors">CARGAR LIBRO ACTUAL</button>
                   ) : (
@@ -842,111 +907,155 @@ const DashboardTab = () => {
                   )}
               </div>
           </div>
+
+          <div className="widget-card !bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-950 border-indigo-800/30 shadow-2xl relative group overflow-hidden widget-mandamiento">
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform duration-500"><Quote className="w-24 h-24 text-indigo-400" /></div>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-400 mb-3 relative z-10 text-left">Mandamiento del Día</p>
+            <p className="text-xl italic font-serif leading-relaxed text-indigo-50 relative z-10 text-left">"{settings.manifesto || 'La inacción no es neutral; es una elección activa por la mediocridad.'}"</p>
+          </div>
         </div>
 
         {/* Columna 2 */}
-        <div className="flex flex-col gap-6">
-          <div className="widget-card bg-white dark:bg-[#151518] border-slate-200 dark:border-slate-800 shadow-2xl">
-            <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-col gap-6 dashboard-col-2">
+          <div className="widget-card bg-white dark:bg-[#151518] border-slate-200 dark:border-slate-800 shadow-2xl widget-energy flex flex-col">
+            {/* Header — Zap TEAL, mantener icono Rayo */}
+            <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                    <div className="bg-amber-500/10 p-3 rounded-2xl border border-amber-500/20"><Zap className="w-6 h-6 text-amber-500" /></div>
+                    <div className="bg-teal-500/10 p-3 rounded-2xl border border-teal-500/20">
+                      <Zap className="w-6 h-6 text-teal-400" />
+                    </div>
                     <div>
                         <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tight text-lg leading-tight text-left">Journal de Energía</h3>
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-left">Estado diario</p>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-left">Registra tu frecuencia diaria</p>
                     </div>
                 </div>
             </div>
 
-            <div className="mb-4 p-1">
+            {/* Slider nivel de energía */}
+            <div className="mb-5 p-1 shrink-0">
                 <EnergySlider value={data.energyLevel} onChange={saveEnergyLevel} />
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            {/* 3 Modos — Focus / Flow / Warrior */}
+            <div className="grid grid-cols-3 gap-3 mb-5 shrink-0">
                 {[
-                  { id: 'focus', label: 'FOCUS MODE', icon: <Zap />, colorClass: 'amber' },
-                  { id: 'slow', label: 'SLOW STATE', icon: <Sun />, colorClass: 'emerald' },
-                  { id: 'water', label: 'WATER MODE', icon: <Waves />, colorClass: 'blue' },
-                  { id: 'burnout', label: 'LOW BATTERY', icon: <BatteryLow />, colorClass: 'red' }
+                  { id: 'focus',   label: 'FOCUS\nMODE',    icon: <Target />,  activeCls: 'bg-red-500/15 border-red-500 text-red-500 shadow-red-500/20',    iconBg: 'bg-red-500/15'    },
+                  { id: 'flow',    label: 'FLOW\nSTATE',    icon: <Waves />,   activeCls: 'bg-cyan-500/15 border-cyan-400 text-cyan-400 shadow-cyan-500/20',  iconBg: 'bg-cyan-500/15'   },
+                  { id: 'warrior', label: 'WARRIOR\nMODE',  icon: <Swords />,  activeCls: 'bg-amber-500/15 border-amber-400 text-amber-400 shadow-amber-500/20', iconBg: 'bg-amber-500/15' },
                 ].map(mode => {
-                  const isSelected = data.mentalState === mode.id;
-                  const classes = {
-                    amber: { active: 'bg-amber-500/10 border-amber-500 text-amber-500', inactive: 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300 dark:hover:border-slate-700' },
-                    emerald: { active: 'bg-emerald-500/10 border-emerald-500 text-emerald-500', inactive: 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300 dark:hover:border-slate-700' },
-                    blue: { active: 'bg-blue-500/10 border-blue-500 text-blue-500', inactive: 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300 dark:hover:border-slate-700' },
-                    red: { active: 'bg-red-500/10 border-red-500 text-red-500', inactive: 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300 dark:hover:border-slate-700' }
-                  };
+                  const isSelected = data.mentalState === mode.id || (data.mentalState === 'slow' && mode.id === 'flow') || (data.mentalState === 'water' && mode.id === 'warrior');
                   return (
-                    <button key={mode.id} onClick={() => saveMentalState(mode.id)} className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all gap-2 ${isSelected ? classes[mode.colorClass].active : classes[mode.colorClass].inactive}`}>
-                      {React.cloneElement(mode.icon, { className: 'w-5 h-5' })}
-                      <span className="text-[9px] font-black tracking-widest truncate">{mode.label}</span>
+                    <button
+                      key={mode.id}
+                      onClick={() => saveMentalState(mode.id)}
+                      className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all duration-300 gap-3 ${
+                        isSelected
+                          ? `${mode.activeCls} shadow-lg scale-[1.04]`
+                          : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
+                      }`}
+                    >
+                      <div className={`p-2.5 rounded-xl transition-all duration-300 ${
+                        isSelected ? mode.iconBg : 'bg-slate-100 dark:bg-slate-800'
+                      }`}>
+                        {React.cloneElement(mode.icon, { className: `w-6 h-6 transition-all ${isSelected ? '' : 'opacity-40'}` })}
+                      </div>
+                      <span className="text-[9px] font-black tracking-widest text-center leading-tight whitespace-pre-line">{mode.label}</span>
                     </button>
                   );
                 })}
             </div>
 
-            {data.energyHistory?.length > 0 && (
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3">Historial Últimos 7 Días</p>
-                <div className="flex items-end justify-between h-12 gap-1.5 px-1">
-                  {data.energyHistory.slice(-7).map((h, i) => (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                      <div className="w-full bg-indigo-500/20 rounded-t-lg relative group" style={{ height: `${(h.level || 5) * 10}%` }}>
-                        <div className="absolute inset-0 bg-indigo-400 rounded-t-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+            {/* Historial — siempre visible y llena el resto de la altura */}
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex-1 flex flex-col justify-end">
+              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 text-left">Historial — Últimos 7 Días</p>
+              
+              <div className="flex justify-between items-end gap-1 flex-1 min-h-[70px] mt-2 px-1">
+                {(() => {
+                  const history = data.energyHistory?.slice(-7) || [];
+                  const dayLabels = ['SÁ', 'DO', 'LU', 'MA', 'MI', 'JU', 'VI'];
+                  const modeColors = { focus: 'bg-red-400', flow: 'bg-cyan-400', warrior: 'bg-amber-400', slow: 'bg-cyan-400', water: 'bg-amber-400' };
+                  const modeIcons = { focus: <Target className="w-3 h-3 text-red-500 mb-1" />, flow: <Waves className="w-3 h-3 text-cyan-400 mb-1" />, warrior: <Swords className="w-3 h-3 text-amber-400 mb-1" /> };
+                  
+                  return Array.from({ length: 7 }, (_, i) => {
+                    const h = history[i] || null;
+                    const level = h?.level || 0;
+                    const pct = level > 0 ? Math.max(level * 10, 10) : 0;
+                    const modeId = h?.mentalState || h?.mode || '';
+                    const mappedMode = modeId === 'slow' ? 'flow' : (modeId === 'water' ? 'warrior' : modeId);
+                    const barColor = modeColors[mappedMode] || 'bg-teal-400';
+                    const iconToShow = modeIcons[mappedMode] || null;
+
+                    return (
+                      <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group">
+                        {level > 0 && iconToShow}
+                        <div 
+                          className="w-full relative rounded-t-xl transition-all duration-500 ease-out"
+                          style={{ height: pct > 0 ? `${pct}%` : '4px', minHeight: '4px' }}
+                        >
+                          <div className={`absolute inset-0 rounded-t-xl ${pct > 0 ? barColor : 'bg-slate-100 dark:bg-slate-800'} ${pct > 0 ? 'opacity-90 group-hover:opacity-100' : ''}`} />
+                        </div>
+                        <span className="text-[8px] font-black text-slate-500 mt-2 uppercase">{dayLabels[i]}</span>
                       </div>
-                      <span className="text-[8px] font-bold text-slate-600">{h.date.split('-')[2]}</span>
-                    </div>
-                  ))}
-                </div>
+                    );
+                  });
+                })()}
               </div>
-            )}
+
+              {/* Leyenda de modos estilo imagen */}
+              <div className="flex items-center flex-wrap gap-x-4 gap-y-2 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60 shrink-0">
+                <div className="flex items-center gap-1.5"><Target className="w-3 h-3 text-red-500" /><span className="text-[8px] font-black uppercase tracking-widest text-red-500">Focus</span></div>
+                <div className="flex items-center gap-1.5"><Waves className="w-3 h-3 text-cyan-400" /><span className="text-[8px] font-black uppercase tracking-widest text-cyan-400">Flow</span></div>
+                <div className="flex items-center gap-1.5"><Swords className="w-3 h-3 text-amber-400" /><span className="text-[8px] font-black uppercase tracking-widest text-amber-400">Warrior</span></div>
+                <div className="ml-auto"><span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">HOY: {data.energyLevel ? <span className="text-white bg-teal-500/20 px-2 py-0.5 rounded ml-1 text-teal-400">{data.energyLevel}</span> : '—'}</span></div>
+              </div>
+            </div>
           </div>
 
-          <div className="widget-card !bg-white dark:!bg-[#151518] border-slate-200 dark:border-slate-800 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
+          <div className="widget-card !bg-white dark:!bg-[#151518] border-slate-200 dark:border-slate-800 shadow-xl widget-horario flex-1 flex flex-col">
+              <div className="flex items-center justify-between mb-4 shrink-0">
                   <div className="flex items-center gap-4">
                       <div className="bg-indigo-500/10 p-3 rounded-2xl"><Clock className="w-6 h-6 text-indigo-500" /></div>
                       <div><h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight text-left">Horario de Hoy</h3></div>
                   </div>
-                  <button onClick={() => setIsScheduleModalOpen(true)} className="p-2.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 rounded-xl hover:scale-105 transition-all shadow-sm"><Plus className="w-5 h-5" /></button>
+                  <button onClick={() => setModals(p => ({ ...p, schedule: true }))} className="p-2.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 rounded-xl hover:scale-105 transition-all shadow-sm"><Plus className="w-5 h-5" /></button>
               </div>
-              <div className="space-y-3 min-h-[120px] flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+              <div className="space-y-3 min-h-[60px] flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-4 widget-horario-empty">
                   {data.scheduleItems.length === 0 ? (
                       <div className="text-center group">
                           <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform"><Calendar className="w-7 h-7 text-slate-300 dark:text-slate-600" /></div>
-                          <p className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Agenda Limpia.<br/>Añade eventos importantes.</p>
+                          <p className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center mt-2">Agenda Vacía</p>
                       </div>
                   ) : (
                       <div className="w-full space-y-3">
-                          {data.scheduleItems.map(item => (
+                          {(data.scheduleItems || []).map(item => (
                               <div key={item.id} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 group hover:border-indigo-500/30 transition-all">
-                                  <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-4 text-left">
                                       <div className="w-2 h-10 bg-indigo-500 rounded-full"></div>
-                                      <div className="text-left"><p className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight truncate max-w-[120px]">{item.title}</p><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.startTime} - {item.endTime}</p></div>
+                                      <div>
+                                          <p className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight truncate max-w-[120px]">{item.title}</p>
+                                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.startTime} - {item.endTime}</p>
+                                      </div>
                                   </div>
-                                  <button onClick={() => deleteScheduleItem(item.id)} className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><X className="w-4 h-4" /></button>
+                                  <button onClick={() => deleteScheduleItem(item.id)} className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 md:opacity-100 transition-all">
+                                      <CloseIcon className="w-4 h-4" />
+                                  </button>
                               </div>
                           ))}
                       </div>
                   )}
               </div>
           </div>
-
-          <div className="widget-card !bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-950 border-indigo-800/30 shadow-2xl relative group overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform"><Quote className="w-24 h-24 text-indigo-400" /></div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-400 mb-3 relative z-10 text-left">Mandamiento del Día</p>
-            <p className="text-xl italic font-serif leading-relaxed text-indigo-50 relative z-10 max-w-2xl text-left">"{settings.manifesto || 'La inacción no es neutral; es una elección activa por la mediocridad.'}"</p>
-          </div>
         </div>
 
         {/* Columna 3 */}
-        <div className="flex flex-col gap-6">
-          <div className="widget-card !bg-white dark:!bg-[#151518] border-slate-200 dark:border-slate-800 shadow-xl">
+        <div className="flex flex-col gap-6 dashboard-col-3">
+          <div className="widget-card !bg-white dark:!bg-[#151518] border-slate-200 dark:border-slate-800 shadow-xl widget-sacred">
               <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-4">
                       <div className="bg-blue-500/10 p-3 rounded-2xl"><Anchor className="w-6 h-6 text-blue-500" /></div>
                       <div><h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight text-left">Bloque Sagrado</h3></div>
                   </div>
-                  <button onClick={() => setIsSacredModalOpen(true)} className="p-2 text-slate-400 hover:text-blue-500 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                  <button onClick={() => setModals(p => ({ ...p, sacred: true }))} className="p-2 text-slate-400 hover:text-blue-500 transition-colors"><Edit2 className="w-4 h-4" /></button>
               </div>
               <div className="min-h-[100px] flex items-center justify-center bg-slate-50 dark:bg-slate-800/30 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-6">
                   {data.sacredBlocks.length > 0 ? (
@@ -962,7 +1071,7 @@ const DashboardTab = () => {
               </div>
           </div>
 
-          <div className="relative">
+          <div className="relative widget-english flex-1 flex flex-col">
           {data.englishWords.length > 0 ? (
             <LanguageWidget
               words={data.englishWords}
@@ -1001,14 +1110,16 @@ const DashboardTab = () => {
               {nightHabitsList.map(item => {
                 const isDone = data.nightHabits[item.key] === 1;
                 return (
-                  <button key={item.key} onClick={() => toggleNightHabit(item.key)} className={`flex flex-col justify-between p-4 rounded-3xl transition-all min-h-[100px] border-2 ${isDone ? `${item.theme.bg} border-transparent scale-[1.02] shadow-xl` : 'bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}>
+                  <button key={item.key} onClick={() => toggleNightHabit(item.key)} className={`flex flex-col justify-between p-4 rounded-3xl transition-all min-h-[100px] border-2 ${isDone ? `${item.theme.bg} dark:bg-opacity-20 border-transparent scale-[1.02] shadow-xl` : 'bg-white dark:bg-slate-800/30 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}>
                     <div className="flex items-start justify-between w-full mb-3">
-                      <div className={`p-2 rounded-xl ${isDone ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{React.cloneElement(item.icon, { className: 'w-4 h-4' })}</div>
-                      {isDone ? <CheckCircle2 className="w-5 h-5 text-white" /> : <Circle className="w-5 h-5 text-slate-400 dark:text-slate-700" />}
+                      <div className={`p-2 rounded-xl ${isDone ? 'bg-white/40 dark:bg-slate-900/40' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                        {React.cloneElement(item.icon, { className: `w-5 h-5 ${isDone ? item.theme.icon : 'text-slate-500 dark:text-slate-400'}` })}
+                      </div>
+                      {isDone ? <CheckCircle2 className={`w-5 h-5 ${item.theme.icon}`} /> : <Circle className="w-5 h-5 text-slate-400 dark:text-slate-700" />}
                     </div>
                     <div className="text-left">
-                      <h4 className={`font-bold text-[11px] leading-tight mb-1 ${isDone ? 'text-white' : 'text-slate-700 dark:text-slate-200'}`}>{item.label}</h4>
-                      <p className={`text-[8px] font-medium opacity-70 ${isDone ? 'text-white' : 'text-slate-500'}`}>{item.subLabel}</p>
+                      <h4 className={`font-bold text-[11px] leading-tight mb-1 ${isDone ? `${item.theme.text} dark:text-white` : 'text-slate-700 dark:text-slate-200'}`}>{item.label}</h4>
+                      <p className={`text-[8px] font-bold tracking-wide ${isDone ? item.theme.sub : 'text-slate-500'}`}>{item.subLabel}</p>
                     </div>
                   </button>
                 );
@@ -1019,29 +1130,45 @@ const DashboardTab = () => {
       </div>
 
       {/* Modals */}
-      <Modal isOpen={isSacredModalOpen} onClose={() => setIsSacredModalOpen(false)} title="Horario Sagrado">
+      <Modal isOpen={isSacredModalOpen} onClose={() => setModals(p => ({ ...p, sacred: false }))} title="Horario Sagrado">
           <SacredBlockEditor initialBlocks={data.sacredBlocks} onSave={saveSacredBlocks} />
       </Modal>
-      <Modal isOpen={isScheduleModalOpen} onClose={() => setIsScheduleModalOpen(false)} title="Nuevo Evento">
+      <Modal isOpen={isScheduleModalOpen} onClose={() => setModals(p => ({ ...p, schedule: false }))} title="Nuevo Evento">
           <div className="space-y-4 p-2">
               <input type="text" value={newEvent.title} onChange={e => setNewEvent(p => ({ ...p, title: e.target.value }))} placeholder="Título" className="w-full p-4 bg-slate-800 rounded-2xl text-white outline-none" />
               <div className="grid grid-cols-2 gap-4">
                   <input type="time" value={newEvent.startTime} onChange={e => setNewEvent(p => ({ ...p, startTime: e.target.value }))} className="p-4 bg-slate-800 rounded-2xl text-white outline-none" />
                   <input type="time" value={newEvent.endTime} onChange={e => setNewEvent(p => ({ ...p, endTime: e.target.value }))} className="p-4 bg-slate-800 rounded-2xl text-white outline-none" />
               </div>
-              <button onClick={addScheduleItem} className="w-full py-4 bg-indigo-600 text-white font-black uppercase rounded-2xl">AÑADIR</button>
+              <button 
+                onClick={addScheduleItem} 
+                disabled={isSaving}
+                className={`w-full py-4 text-white font-black uppercase rounded-2xl transition-all ${isSaving ? 'bg-slate-700 animate-pulse' : 'bg-indigo-600 hover:bg-indigo-500'}`}
+              >
+                {isSaving ? 'Guardando...' : 'AÑADIR'}
+              </button>
           </div>
       </Modal>
-      <Modal isOpen={isReadingModalOpen} onClose={() => setIsReadingModalOpen(false)} title="Lectura Actual">
+      <Modal isOpen={isReadingModalOpen} onClose={() => setModals(p => ({ ...p, reading: false }))} title="Lectura Actual">
           <div className="space-y-4 p-2">
-              <input type="text" id="r-in" defaultValue={data.reading?.current_book} placeholder="Título del libro" className="w-full p-4 bg-slate-800 rounded-2xl text-white outline-none" />
-              <Button onClick={() => saveReading(document.getElementById('r-in').value)} className="w-full py-4 bg-amber-600 text-white font-black uppercase rounded-2xl">GUARDAR LIBRO</Button>
+              <input 
+                type="text" 
+                value={modals.reading_input || data.reading?.current_book || ''} 
+                onChange={e => setModals(p => ({ ...p, reading_input: e.target.value }))}
+                placeholder="Título del libro" 
+                className="w-full p-4 bg-slate-800 rounded-2xl text-white outline-none" 
+              />
+              <Button onClick={() => saveReading(modals.reading_input || data.reading?.current_book)} className="w-full py-4 bg-amber-600 text-white font-black uppercase rounded-2xl">GUARDAR LIBRO</Button>
           </div>
       </Modal>
 
-      <Modal isOpen={isFocusModalOpen} onClose={() => setIsFocusModalOpen(false)} title="Foco Semanal">
-          <textarea defaultValue={data.weeklyFocus.priority_1} id="f-in" className="w-full p-4 bg-slate-800 rounded-2xl text-red-500 outline-none h-32 uppercase font-black" />
-          <Button onClick={() => saveWeeklyFocus(document.getElementById('f-in').value)} className="w-full mt-4 py-4 bg-red-600">GUARDAR</Button>
+      <Modal isOpen={isFocusModalOpen} onClose={() => setModals(p => ({ ...p, focus: false }))} title="Foco Semanal">
+          <textarea 
+            value={modals.focus_input !== undefined ? modals.focus_input : data.weeklyFocus.priority_1 || ''} 
+            onChange={e => setModals(p => ({ ...p, focus_input: e.target.value }))}
+            className="w-full p-4 bg-slate-800 rounded-2xl text-red-500 outline-none h-32 uppercase font-black" 
+          />
+          <Button onClick={() => saveWeeklyFocus(modals.focus_input || data.weeklyFocus.priority_1)} className="w-full mt-4 py-4 bg-red-600 font-bold uppercase tracking-widest">GUARDAR</Button>
       </Modal>
 
     </div>

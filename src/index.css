@@ -156,8 +156,8 @@ html, body, #root {
 /* ─── 5. COMPONENTE: WIDGET CARD ─────────────────────────────────────────── */
 
 .widget-card {
-  background: var(--surface-raised);
-  border: 1px solid var(--surface-border);
+  @apply bg-white dark:bg-[#13151A];
+  @apply border border-slate-200 dark:border-[#2A2D35];
   border-radius: var(--r-lg);
   padding: 20px;
   display: flex;
@@ -739,4 +739,46 @@ input::placeholder, textarea::placeholder {
    ══════════════════════════════════════════════════════════════════════ */
 .hamburger-btn {
   display: none;  /* visible solo en móvil via media query arriba */
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   18. DASHBOARD DESKTOP LAYOUT — SOLUCIÓN DEFINITIVA
+   ══════════════════════════════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+
+  /* Grid de 3 columnas iguales */
+  .dashboard-main-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    grid-auto-rows: auto !important;
+    align-items: start !important;
+    gap: 1.5rem !important;
+  }
+
+  /* Cada columna: flex vertical limpio */
+  .dashboard-main-grid > .dashboard-col-1,
+  .dashboard-main-grid > .dashboard-col-2,
+  .dashboard-main-grid > .dashboard-col-3 {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+    align-self: start !important;
+    min-width: 0;
+  }
+
+  /* Todos los widgets: altura natural sin estiramientos */
+  .dashboard-main-grid .widget-tesla,
+  .dashboard-main-grid .widget-energy,
+  .dashboard-main-grid .widget-sacred,
+  .dashboard-main-grid .widget-foco,
+  .dashboard-main-grid .widget-horario,
+  .dashboard-main-grid .widget-lectura,
+  .dashboard-main-grid .widget-mandamiento,
+  .dashboard-main-grid .widget-english {
+    grid-row: unset !important;
+    grid-column: unset !important;
+    height: auto !important;
+    align-self: auto !important;
+    flex-shrink: 0;
+  }
 }
