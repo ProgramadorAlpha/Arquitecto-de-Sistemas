@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const DraggableFAB = ({ onClick, children, tooltip }) => {
+const DraggableFAB = ({ onClick, children, tooltip, badgeCount = 0, hasCriticalAlert = false }) => {
   // Use absolute bottom/right positioning
   const [position, setPosition] = useState({ right: 32, bottom: 32 }); 
   const [isDragging, setIsDragging] = useState(false);
@@ -111,16 +111,24 @@ const DraggableFAB = ({ onClick, children, tooltip }) => {
       style={{ 
         right: `${position.right}px`, 
         bottom: `${position.bottom}px`, 
-        touchAction: 'none' // critical for mobile dragging without scrolling
+        touchAction: 'none'
       }}
       className={`fixed bg-amber-500/90 backdrop-blur-md text-white p-3 rounded-full shadow-lg shadow-amber-500/20 z-[999] group border border-amber-400/40 outline-none flex items-center justify-center
+        ${hasCriticalAlert ? 'fab-critical-pulse' : ''}
         ${isDragging 
           ? 'scale-90 cursor-grabbing bg-amber-600 opacity-90 transition-none' 
           : 'hover:scale-110 cursor-grab hover:-translate-y-0.5 transition-all duration-300'
         }`}
-      title="Vaciado Mental (Manten presionado para mover)"
+      title="Lya AI Hub (Mantén presionado para mover)"
     >
       {children}
+
+      {/* Badge de alertas críticas */}
+      {badgeCount > 0 && !isDragging && (
+        <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg shadow-red-500/40 border-2 border-slate-900 leading-none pointer-events-none animate-bounce-short z-10">
+          {badgeCount > 9 ? '9+' : badgeCount}
+        </span>
+      )}
       
       {!isDragging && tooltip && (
         <span className="absolute right-full mr-3 bg-slate-900/90 backdrop-blur-sm text-white text-[10px] font-black px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl border border-slate-700/50 hidden md:block">

@@ -3,6 +3,8 @@ import { Brain, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useAppContext } from '../../context/AppContext';
 import DraggableFAB from './DraggableFAB';
+import useNetworkMembers from '../../hooks/useNetworkMembers';
+import useProactiveAlerts from '../../hooks/useProactiveAlerts';
 
 // Code-split: LyaHub carga pesada (camera, confetti, genai) se separa del bundle principal
 const LyaHubDashboard = lazy(() => import('../LyaHub/LyaHubDashboard'));
@@ -25,11 +27,17 @@ const BrainDumpFAB = () => {
   const { data, actions } = useAppContext();
   const [isOpen, setIsOpen] = useState(false);
 
+  // Hooks proactivos
+  const networkMembers = useNetworkMembers(user);
+  const { criticalCount, alerts } = useProactiveAlerts(user, networkMembers);
+
   return (
     <>
       <DraggableFAB
         onClick={() => setIsOpen(true)}
         tooltip="Lya AI Hub (Mantén presionado para mover)"
+        badgeCount={criticalCount}
+        hasCriticalAlert={criticalCount > 0}
       >
         <Brain className="w-7 h-7" />
       </DraggableFAB>

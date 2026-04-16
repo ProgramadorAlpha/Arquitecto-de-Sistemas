@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Menu, Bell, Sun, Moon, ScrollText, Download, Zap, Flame, BookOpen, Target } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import { useAppContext } from './context/AppContext';
+import useNetworkMembers from './hooks/useNetworkMembers';
+import useProactiveAlerts from './hooks/useProactiveAlerts';
 import Sidebar from './components/Layout/Sidebar';
 import BottomTabBar from './components/Layout/BottomTabBar';
 import DashboardTab from './components/Tabs/DashboardTab';
@@ -26,6 +28,11 @@ const App = () => {
   const [notifOpen, setNotifOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const { data, actions, isDark } = useAppContext();
+
+  // ── Alertas Proactivas (alimentan tanto el FAB como el badge de la campana)
+  const networkMembers = useNetworkMembers(user);
+  const { criticalCount, warningCount } = useProactiveAlerts(user, networkMembers);
+  const totalAlerts = criticalCount + warningCount;
 
   // Fecha formateada
   const todayLabel = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
@@ -144,16 +151,25 @@ const App = () => {
             {/* Bell — Panel de Notificaciones del Día */}
             <button
               onClick={() => setNotifOpen(true)}
-              className="relative p-2.5 rounded-2xl bg-slate-800 text-slate-400 hover:text-blue-400 transition-all border border-transparent hover:border-blue-500/30 group"
+              className={`relative p-2.5 rounded-2xl border transition-all group ${
+                criticalCount > 0
+                  ? 'bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25'
+                  : 'bg-slate-800 border-transparent text-slate-400 hover:text-blue-400 hover:border-blue-500/30'
+              }`}
               title="Notificaciones"
             >
-              <Bell size={18} strokeWidth={2.5} className="group-hover:animate-[ring_0.5s_ease]" />
+              <Bell size={18} strokeWidth={2.5} className={criticalCount > 0 ? 'animate-[hinge_0.1s_ease_infinite]' : 'group-hover:animate-[ring_0.5s_ease]'} />
+              {totalAlerts > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border border-slate-900 leading-none">
+                  {totalAlerts > 9 ? '9+' : totalAlerts}
+                </span>
+              )}
             </button>
           </div>
         </header>
 
         {/* Panel de Notificaciones */}
-        <NotificationPanel isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
+        <NotificationPanel isOpen={notifOpen} onClose={() => setNotifOpen(false)} onNavigate={(tab) => { setActiveTab(tab); setNotifOpen(false); }} />
 
         {/* Scrollable Container */}
         <main className="flex-1 overflow-y-auto bg-[#0a0f1e] p-4 md:p-10 custom-scrollbar pb-24 md:pb-10">
