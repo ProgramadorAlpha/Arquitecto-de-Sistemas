@@ -1,0 +1,743 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   ARQUITECTO DE SISTEMAS — Design System
+   Importar en: src/index.css  (reemplaza el contenido existente)
+   ───────────────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── 1. TOKENS GLOBALES ─────────────────────────────────────────────────── */
+:root {
+  /* Superficies */
+  --surface-base:    #0C0D10;
+  --surface-raised:  #13151A;
+  --surface-overlay: #1A1D24;
+  --surface-border:  #2A2D35;
+  --surface-hover:   #1F2229;
+
+  /* Acento principal — Amber */
+  --accent:          #FBBF24;
+  --accent-dim:      #D97706;
+  --accent-glow:     rgba(251, 191, 36, 0.12);
+  --accent-focus:    rgba(251, 191, 36, 0.28);
+
+  /* Acento secundario — Emerald */
+  --success:         #34D399;
+  --success-dim:     #059669;
+
+  /* Acento terciario — Violet */
+  --purple:          #A78BFA;
+  --purple-dim:      #7C3AED;
+
+  /* Alertas */
+  --danger:          #F87171;
+
+  /* Texto — jerarquía de 4 niveles */
+  --text-primary:    #F1F1F3;   /* títulos, datos clave */
+  --text-secondary:  #9CA3AF;   /* etiquetas, metadatos */
+  --text-tertiary:   #6B7280;   /* hints, placeholders */
+  --text-disabled:   #374151;
+
+  /* Tipografía */
+  --font-main: 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
+
+  /* Radios */
+  --r-sm:  6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+
+  /* Sombras */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+/* ─── 2. BASE RESET ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  height: 100%;
+  background-color: var(--surface-base);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── 3. LAYOUT PRINCIPAL ────────────────────────────────────────────────── */
+
+/* Wrapper raíz: sidebar + contenido */
+.app-shell {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-rows: 100vh;
+  overflow: hidden;
+}
+
+/* Área de contenido scrollable */
+.main-content {
+  overflow-y: auto;
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ─── 4. SISTEMA DE GRID PARA WIDGETS ───────────────────────────────────── */
+
+/*
+  PROBLEMA ORIGINAL: grid con anchos fijos o sin minmax() causaba
+  desbordamiento y cards de alturas inconsistentes.
+
+  SOLUCIÓN: auto-fit + minmax(0, 1fr) + align-items: stretch
+*/
+
+/* Grid asimétrico del Dashboard principal: columna principal (2fr) + columna lateral (1fr) */
+.widget-grid-3 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  align-items: start;     /* ← start para que cada columna tenga su propia altura */
+}
+
+/* Grid de 2 columnas (Foco + Manifiesto, etc.) */
+.widget-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* Grid adaptable — rompe a 1 columna automáticamente */
+.widget-grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* Grid de checklist (2 columnas de íconos) */
+.checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* Responsive: 1 columna en pantallas pequeñas */
+@media (max-width: 1024px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .widget-grid-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .widget-grid-2,
+  .widget-grid-auto {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .widget-grid-3 > *,
+  .widget-grid-2 > *,
+  .widget-grid-auto > * {
+    grid-column: span 1 / span 1 !important;
+  }
+
+  .checklist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ─── 5. COMPONENTE: WIDGET CARD ─────────────────────────────────────────── */
+
+.widget-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--shadow-card);
+  transition: border-color 200ms ease, transform 200ms ease;
+  min-height: 0;             /* ← evita que flex children expandan el padre */
+}
+
+.widget-card:hover {
+  border-color: rgba(255,255,255,0.1);
+}
+
+/* Variantes de acento superior por categoría */
+.widget-card--amber  { border-top: 2px solid var(--accent); border-radius: 0 0 var(--r-lg) var(--r-lg); }
+.widget-card--emerald { border-top: 2px solid var(--success); border-radius: 0 0 var(--r-lg) var(--r-lg); }
+.widget-card--violet { border-top: 2px solid var(--purple); border-radius: 0 0 var(--r-lg) var(--r-lg); }
+.widget-card--coral  { border-top: 2px solid var(--danger); border-radius: 0 0 var(--r-lg) var(--r-lg); }
+
+/* Header de la card */
+.widget-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.widget-card__title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─── 6. COMPONENTE: SIDEBAR ─────────────────────────────────────────────── */
+
+.sidebar {
+  background: var(--surface-raised);
+  border-right: 1px solid var(--surface-border);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 12px;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+.sidebar__logo {
+  padding: 8px 12px 20px;
+  border-bottom: 1px solid var(--surface-border);
+  margin-bottom: 16px;
+}
+
+.sidebar__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+  text-decoration: none;
+}
+
+.sidebar__nav-item:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.sidebar__nav-item--active {
+  background: rgba(251, 191, 36, 0.1);  /* amber tint */
+  color: var(--accent);
+}
+
+.sidebar__nav-item--active svg {
+  color: var(--accent);
+}
+
+/* ─── 7. COMPONENTE: TOPBAR ──────────────────────────────────────────────── */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--surface-border);
+  background: var(--surface-base);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* ─── 8. TIPOGRAFÍA ──────────────────────────────────────────────────────── */
+
+.text-xs     { font-size: 12px; line-height: 16px; }
+.text-sm     { font-size: 13px; line-height: 18px; }
+.text-base   { font-size: 14px; line-height: 20px; }
+.text-lg     { font-size: 16px; line-height: 24px; }
+.text-xl     { font-size: 18px; line-height: 26px; }
+.text-2xl    { font-size: 22px; line-height: 30px; font-weight: 600; }
+
+.text-primary   { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary  { color: var(--text-tertiary); }
+.text-accent    { color: var(--accent); }
+.text-success   { color: var(--success); }
+.text-purple    { color: var(--purple); }
+.text-danger    { color: var(--danger); }
+
+/* ─── 9. COMPONENTE: BADGE / PILL ────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.badge--amber   { background: rgba(251,191,36,0.15); color: #FCD34D; }
+.badge--emerald { background: rgba(52,211,153,0.15); color: #34D399; }
+.badge--violet  { background: rgba(167,139,250,0.15); color: #A78BFA; }
+.badge--coral   { background: rgba(248,113,113,0.15); color: #F87171; }
+.badge--zinc    { background: rgba(113,113,122,0.2);  color: #A1A1AA; }
+
+/* ─── 10. COMPONENTE: BOTÓN ──────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-main);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all 150ms ease;
+  border: none;
+  outline: none;
+}
+
+.btn:focus-visible {
+  box-shadow: 0 0 0 3px var(--accent-focus);
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #0C0D10;
+}
+.btn--primary:hover { background: #FCD34D; }
+.btn--primary:active { transform: scale(0.98); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--surface-border);
+}
+.btn--ghost:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border-color: rgba(255,255,255,0.12);
+}
+
+/* ─── 11. PROGRESS BAR ───────────────────────────────────────────────────── */
+
+.progress-track {
+  width: 100%;
+  height: 4px;
+  background: var(--surface-border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent);
+  transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-fill--emerald { background: var(--success); }
+.progress-fill--violet  { background: var(--purple); }
+
+/* ─── 12. CHECKBOX PERSONALIZADO ─────────────────────────────────────────── */
+
+.custom-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--surface-border);
+  background: transparent;
+  cursor: pointer;
+  transition: all 150ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.custom-check:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.custom-check--done {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+/* ─── 13. UTILIDADES ─────────────────────────────────────────────────────── */
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--surface-border);
+}
+
+.icon-btn {
+  padding: 6px;
+  border-radius: var(--r-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+  background: transparent;
+  border: none;
+  display: flex;
+}
+.icon-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-border); border-radius: 99px; }
+/* ─── 14. ADAPTACIONES ESPECÍFICAS — ARQUITECTO DE SISTEMAS ──────────────── */
+
+/* Energy slider custom styles */
+.energy-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  background: var(--surface-border) !important;
+  border-radius: 9999px;
+}
+.energy-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 3px solid var(--accent);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.energy-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.energy-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 3px solid var(--accent);
+}
+.energy-slider::-moz-range-track {
+  background: transparent;
+  border: none;
+}
+
+/* Inputs contrast and accessibility */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), 
+textarea, 
+select {
+  color: var(--text-primary) !important;
+  background-color: var(--surface-overlay) !important;
+  border: 1px solid var(--surface-border) !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-tertiary) !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ARQUITECTO DE SISTEMAS — Responsive Fix
+   Añadir en: src/index.css  (pegar al final del archivo existente)
+   ═══════════════════════════════════════════════════════════════════════════
+
+   PROBLEMAS DETECTADOS EN MÓVIL:
+   1. Layout side-by-side no colapsa → elementos superpuestos
+   2. Sidebar se mantiene visible y empuja/cubre el contenido
+   3. Paneles flotantes (vocabulary card, journal) se salen del viewport
+   4. Texto partido verticalmente por falta de espacio horizontal
+   5. Sliders y widgets salen del contenedor
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* ─── BREAKPOINTS USADOS ────────────────────────────────────────────────────
+   > 1024px  → Desktop   (layout original de 2 columnas)
+   768-1024px → Tablet   (reducir sidebar, grids de 2 col)
+   < 768px   → Móvil     (todo en 1 columna, sidebar oculto)
+   ─────────────────────────────────────────────────────────────────────── */
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   TABLET (768px – 1024px)
+   ══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+
+  /* App shell: sidebar más estrecho */
+  .app-shell {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+
+  .main-content {
+    padding: 20px 20px;
+    gap: 16px;
+  }
+
+  /* Grids de 3 → 2 columnas en tablet */
+  .widget-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* La tercera card ocupa toda la fila */
+  .widget-grid-3 > *:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   MÓVIL (< 768px) — FIX PRINCIPAL
+   ══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+
+  /* ─── 1. APP SHELL — Todo en 1 columna ─────────────────────────────── */
+  .app-shell {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto 1fr !important;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* ─── 2. SIDEBAR — Oculto por defecto, solo topbar visible ─────────── */
+  .sidebar {
+    display: none;                   /* ocultado; se muestra con JS al abrir menú */
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    width: 280px;
+    max-width: 85vw;
+    padding: 24px 16px;
+    overflow-y: auto;
+    background: #13151A;
+    border-right: 1px solid #2A2D35;
+  }
+
+  /* Sidebar abierto: añadir clase .sidebar--open desde React */
+  .sidebar--open {
+    display: flex !important;
+  }
+
+  /* Overlay detrás del sidebar */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    background: rgba(0,0,0,0.6);
+  }
+  .sidebar-overlay--open {
+    display: block;
+  }
+
+  /* ─── 3. BOTÓN HAMBURGUESA — mostrar en móvil ───────────────────────── */
+  .hamburger-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid #2A2D35;
+    cursor: pointer;
+    color: #9CA3AF;
+  }
+  .hamburger-btn:hover {
+    background: #1F2229;
+    color: #F1F1F3;
+  }
+
+  /* ─── 4. TOPBAR / HEADER ────────────────────────────────────────────── */
+  .topbar {
+    padding: 12px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    gap: 12px;
+  }
+
+  /* ─── 5. CONTENIDO PRINCIPAL ────────────────────────────────────────── */
+  .main-content {
+    padding: 16px 14px;
+    gap: 12px;
+    overflow-x: hidden;             /* ← evita scroll horizontal */
+    min-height: 0;
+  }
+
+  /* ─── 6. TODOS LOS GRIDS → 1 COLUMNA ───────────────────────────────── */
+  .widget-grid-3,
+  .widget-grid-2,
+  .widget-grid-auto {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 16px;
+  }
+
+  .widget-grid-3 > *,
+  .widget-grid-2 > *,
+  .widget-grid-auto > * {
+    grid-column: span 1 / span 1 !important;
+    order: unset !important; /* Resetea el orden para que sigan el flujo natural si el grid está roto */
+  }
+
+  /* Checklist mantiene 2 columnas si el ítem cabe */
+  .checklist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+
+  /* ─── 7. CARDS — padding reducido, sin desbordamiento ──────────────── */
+  .widget-card {
+    padding: 14px 14px;
+    gap: 10px;
+    overflow: hidden;               /* ← contenido no desborda la card */
+    min-width: 0;                   /* ← flex/grid child no expande */
+  }
+
+  /* ─── 8. PANELES FLOTANTES (Vocabulary, Journal, etc.) ─────────────── */
+  /* Evitar selectores globales demasiado agresivos que rompen el grid */
+  .dashboard-columns,
+  .content-with-panel {
+    flex-direction: column !important;
+    display: flex !important;
+    gap: 12px;
+  }
+
+  /* Paneles que usan position absolute/fixed → reposicionar */
+  [class*="panel"],
+  [class*="floating"],
+  [class*="aside"] {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    transform: none !important;
+  }
+
+  /* ─── 9. OVERFLOW EN CONTENEDORES FLEX ──────────────────────────────── */
+  /* Evitar que children con min-width rompan el layout */
+  .widget-card *,
+  .main-content * {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* ─── 10. SLIDERS (energy level, etc.) ─────────────────────────────── */
+  input[type="range"] {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  /* ─── 11. TYPOGRAPHY — ajuste en móvil ──────────────────────────────── */
+
+  /* Evitar títulos que rompen línea por falta de espacio */
+  .widget-card__title,
+  [class*="section-title"],
+  [class*="widget-title"] {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Títulos grandes reducidos */
+  h1, .text-5xl { font-size: 24px !important; }
+  h2, .text-4xl { font-size: 20px !important; }
+  h3, .text-3xl { font-size: 18px !important; }
+  .text-2xl      { font-size: 16px !important; }
+
+  /* ─── 12. HORARIO / TIMELINE ─────────────────────────────────────────── */
+  /* Las horas que mostraban "08:00\nPM" en columnas separadas */
+  [class*="time-label"],
+  [class*="schedule-time"] {
+    white-space: nowrap;
+    font-size: 12px;
+  }
+
+  [class*="schedule-row"],
+  [class*="timeline-item"] {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* ─── 13. BADGES DE DÍAS (LUN/MAR/VIER) ─────────────────────────────── */
+  [class*="day-badge"],
+  [class*="days-row"] {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* ─── 14. JOURNAL DE ENERGÍA — fix layout roto ───────────────────────── */
+  /* El journal mostraba ícono + texto en columna con espacios enormes */
+  [class*="journal"],
+  [class*="energy-journal"] {
+    width: 100% !important;
+    padding: 14px !important;
+  }
+
+  /* ─── 15. VOCAB / FLASHCARD PANEL ───────────────────────────────────── */
+  [class*="vocab"],
+  [class*="flashcard"],
+  [class*="english"] {
+    width: 100% !important;
+    position: static !important;
+    max-height: none !important;
+  }
+
+  /* ─── 16. FAB BUTTON (brain icon abajo a la derecha) ─────────────────── */
+  /* Asegurar que no tape contenido importante */
+  [class*="fab"],
+  [class*="floating-btn"] {
+    bottom: 20px !important;
+    right: 16px !important;
+  }
+
+  /* ─── 17. SCROLL HORIZONTAL DESACTIVADO ─────────────────────────────── */
+  body, #root {
+    overflow-x: hidden;
+  }
+
+  /* Contenedores que usaban overflow-x: auto en horizontal → wrap */
+  [class*="scroll-x"],
+  [class*="overflow-x"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   HAMBURGUESA — ocultar en desktop
+   ══════════════════════════════════════════════════════════════════════ */
+.hamburger-btn {
+  display: none;  /* visible solo en móvil via media query arriba */
+}
+

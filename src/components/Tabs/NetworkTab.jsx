@@ -63,18 +63,23 @@ const NetworkTab = () => {
       const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       setNetwork(data);
       setLoading(false);
+    }, (error) => {
+      console.error("Firestore error in NetworkTab (collection):", error);
+      setLoading(false);
     });
     
     // Load custom settings (Rule & Expansion Strategy)
-    const ruleUnsub = onSnapshot(doc(db, 'users', user.uid, 'settings', 'network'), (doc) => {
-        if (doc.exists()) {
-            if (doc.data().customDailyRule) {
-                setCustomRule(doc.data().customDailyRule);
+    const ruleUnsub = onSnapshot(doc(db, 'users', user.uid, 'settings', 'network'), (docSnapshot) => {
+        if (docSnapshot.exists()) {
+            if (docSnapshot.data().customDailyRule) {
+                setCustomRule(docSnapshot.data().customDailyRule);
             }
-            if (doc.data().customExpansionStrategy) {
-                setExpansionStrategy(doc.data().customExpansionStrategy);
+            if (docSnapshot.data().customExpansionStrategy) {
+                setExpansionStrategy(docSnapshot.data().customExpansionStrategy);
             }
         }
+    }, (error) => {
+        console.error("Firestore error in NetworkTab (doc):", error);
     });
 
     return () => {

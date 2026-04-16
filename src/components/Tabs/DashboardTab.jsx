@@ -57,18 +57,20 @@ import Modal from '../UI/Modal';
 import LanguageWidget, { LANGUAGES, LEVELS } from '../UI/LanguageWidget';
 import { getWeekId } from '../../utils/dateUtils';
 import { generateLanguageWords } from '../../services/ai';
+import { useCountUp } from '../../hooks/useCountUp';
 
-/* ─── Circular Progress Component ─── */
+/* ─── Circular Progress Component (with Count-Up) ─── */
 const CircularProgress = ({ percentage, size = 120, strokeWidth = 10 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percentage / 100) * circumference;
+  const animatedPercentage = useCountUp(percentage, 1400, { from: 0, trigger: percentage > 0 });
+  const offset = circumference - (animatedPercentage / 100) * circumference;
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <div 
+      <div
         className="absolute inset-0 rounded-full blur-xl opacity-40 transition-all duration-1000"
-        style={{ background: `conic-gradient(from 0deg, #136dec ${percentage}%, transparent ${percentage}%)` }}
+        style={{ background: `conic-gradient(from 0deg, #136dec ${animatedPercentage}%, transparent ${animatedPercentage}%)` }}
       />
       <svg width={size} height={size} className="transform -rotate-90 relative z-10">
         <circle
@@ -96,11 +98,17 @@ const CircularProgress = ({ percentage, size = 120, strokeWidth = 10 }) => {
         </defs>
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-        <span className="text-3xl font-black text-white tabular-nums">{percentage}%</span>
+        <span className="text-3xl font-black text-white tabular-nums">{Math.round(animatedPercentage)}%</span>
         <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Progreso</span>
       </div>
     </div>
   );
+};
+
+/* ─── Streak Counter with Count-Up ─── */
+const StreakCounter = ({ count }) => {
+  const animatedCount = useCountUp(count, 1000, { from: 0, trigger: count > 0 });
+  return <>{Math.round(animatedCount)}</>;
 };
 
 /* ─── Energy Slider ─── */
@@ -413,7 +421,12 @@ const DashboardTab = () => {
     if (!user) return;
     const fetchEnergyHistory = async () => {
       try {
-        const snap = await getDocs(collection(db, 'users', user.uid, 'energy_log'));
+        const q = query(
+          collection(db, 'users', user.uid, 'energy_log'),
+          orderBy('date', 'asc'),
+          limit(7)
+        );
+        const snap = await getDocs(q);
         const history = [];
         snap.forEach(d => history.push({ date: d.id, ...d.data() }));
         setData(prev => ({ ...prev, energyHistory: history }));
@@ -454,8 +467,18 @@ const DashboardTab = () => {
     const newHabits = { ...data.habits, [habitKey]: newVal };
     setData(prev => ({ ...prev, habits: newHabits }));
     await setDoc(doc(db, 'users', user.uid, 'habits', today), { [habitKey]: newVal }, { merge: true });
-    if (newVal && Object.values(newHabits).filter(v => v).length === 3) {
-      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+
+    // Micro-confetti dopaminérgico: mini burst al completar cada habito
+    if (newVal) {
+      confetti({ particleCount: 30, spread: 40, origin: { y: 0.7, x: 0.5 }, colors: ['#fbbf24', '#6366f1', '#d946ef'], gravity: 1.5, scalar: 0.8 });
+    }
+
+    // Mega-confetti al completar todos los matutinos
+    const completedCount = Object.values(newHabits).filter(v => v).length;
+    if (newVal && completedCount === morningHabits.length) {
+      setTimeout(() => {
+        confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 }, colors: ['#fbbf24', '#34d399', '#6366f1', '#d946ef', '#f87171'] });
+      }, 300);
     }
   };
 
@@ -464,8 +487,17 @@ const DashboardTab = () => {
     const newNightHabits = { ...data.nightHabits, [habitKey]: newVal };
     setData(prev => ({ ...prev, nightHabits: newNightHabits }));
     await setDoc(doc(db, 'users', user.uid, 'night_habits', today), { [habitKey]: newVal }, { merge: true });
-    if (newVal === 1 && Object.values(newNightHabits).filter(v => v === 1).length === 6) {
-      confetti({ particleCount: 200, spread: 100, origin: { y: 0.7 }, colors: ['#6366f1', '#818cf8', '#c7d2fe', '#fbbf24'] });
+
+    // Micro-confetti al completar habito nocturno
+    if (newVal === 1) {
+      confetti({ particleCount: 25, spread: 35, origin: { y: 0.75, x: 0.5 }, colors: ['#6366f1', '#818cf8', '#fbbf24'], gravity: 1.5, scalar: 0.8 });
+    }
+
+    // Mega-confetti al completar todos los nocturnos
+    if (newVal === 1 && Object.values(newNightHabits).filter(v => v === 1).length === nightHabitsList.length) {
+      setTimeout(() => {
+        confetti({ particleCount: 250, spread: 120, origin: { y: 0.5 }, colors: ['#6366f1', '#818cf8', '#c7d2fe', '#fbbf24', '#34d399', '#d946ef'] });
+      }, 300);
     }
   };
 
@@ -659,10 +691,24 @@ const DashboardTab = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-blue-500/30">
       {loading ? (
-        <div className="fixed inset-0 bg-slate-950/20 backdrop-blur-sm z-[200] flex items-center justify-center">
-          <div className="bg-slate-900/80 p-8 rounded-[2rem] border border-slate-800 shadow-2xl flex flex-col items-center gap-4">
-            <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
-            <p className="text-white font-black uppercase tracking-[0.2em] text-xs animate-pulse">Optimizando Sistema...</p>
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[200] flex items-center justify-center">
+          <div className="w-full max-w-md mx-4 space-y-6">
+            {/* Skeleton loader dopaminérgico */}
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-24 h-24 rounded-full bg-slate-800/60 animate-pulse" />
+              <div className="h-4 w-40 bg-slate-800/60 rounded-full animate-pulse" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-24 bg-slate-800/40 rounded-2xl animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+              ))}
+            </div>
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-14 bg-slate-800/40 rounded-2xl animate-pulse" style={{ animationDelay: `${(i + 4) * 150}ms` }} />
+              ))}
+            </div>
+            <p className="text-center text-slate-500 font-black uppercase tracking-[0.2em] text-xs animate-pulse">Sincronizando Sistema...</p>
           </div>
         </div>
       ) : null}
@@ -687,7 +733,7 @@ const DashboardTab = () => {
       <div className="w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex items-center justify-between shadow-sm z-20 relative lg:hidden">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-xl font-black text-sm uppercase tracking-wider">
-             <span className="text-lg">🔥</span> {streakCount} {streakCount === 1 ? 'DÍA' : 'DÍAS'}
+             <span className="text-lg">🔥</span> <StreakCounter count={streakCount} /> {streakCount === 1 ? 'DÍA' : 'DÍAS'}
           </div>
           <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
           <div className="hidden sm:block">
@@ -721,7 +767,7 @@ const DashboardTab = () => {
               <div className="flex flex-col items-end mr-4">
                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Racha Actual</span>
                 <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 font-black text-lg">
-                  <span className="text-xl">🔥</span> {streakCount} {streakCount === 1 ? 'DÍA' : 'DÍAS'}
+                  <span className="text-xl">🔥</span> <StreakCounter count={streakCount} /> {streakCount === 1 ? 'DÍA' : 'DÍAS'}
                 </div>
               </div>
               <div className="h-10 w-px bg-slate-200 dark:bg-slate-800 mx-2"></div>
@@ -971,13 +1017,26 @@ const DashboardTab = () => {
               
               <div className="flex justify-between items-end gap-1 flex-1 min-h-[70px] mt-2 px-1">
                 {(() => {
-                  const history = data.energyHistory?.slice(-7) || [];
-                  const dayLabels = ['SÁ', 'DO', 'LU', 'MA', 'MI', 'JU', 'VI'];
+                  // Generar últimos 7 días con fechas reales
+                  const DAY_NAMES = ['DO', 'LU', 'MA', 'MI', 'JU', 'VI', 'SÁ'];
+                  const now = new Date();
+                  const last7 = Array.from({ length: 7 }, (_, i) => {
+                    const d = new Date(now);
+                    d.setDate(d.getDate() - (6 - i));
+                    const key = d.toISOString().split('T')[0];
+                    const dayName = DAY_NAMES[d.getDay()];
+                    return { key, dayName };
+                  });
+
+                  // Mapa rápido: fecha → registro de energía
+                  const energyMap = {};
+                  (data.energyHistory || []).forEach(e => { energyMap[e.date] = e; });
+
                   const modeColors = { focus: 'bg-red-400', flow: 'bg-cyan-400', warrior: 'bg-amber-400', slow: 'bg-cyan-400', water: 'bg-amber-400' };
                   const modeIcons = { focus: <Target className="w-3 h-3 text-red-500 mb-1" />, flow: <Waves className="w-3 h-3 text-cyan-400 mb-1" />, warrior: <Swords className="w-3 h-3 text-amber-400 mb-1" /> };
-                  
-                  return Array.from({ length: 7 }, (_, i) => {
-                    const h = history[i] || null;
+
+                  return last7.map(({ key, dayName }) => {
+                    const h = energyMap[key] || null;
                     const level = h?.level || 0;
                     const pct = level > 0 ? Math.max(level * 10, 10) : 0;
                     const modeId = h?.mentalState || h?.mode || '';
@@ -986,15 +1045,15 @@ const DashboardTab = () => {
                     const iconToShow = modeIcons[mappedMode] || null;
 
                     return (
-                      <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group">
+                      <div key={key} className="flex-1 flex flex-col items-center justify-end h-full group">
                         {level > 0 && iconToShow}
-                        <div 
+                        <div
                           className="w-full relative rounded-t-xl transition-all duration-500 ease-out"
                           style={{ height: pct > 0 ? `${pct}%` : '4px', minHeight: '4px' }}
                         >
                           <div className={`absolute inset-0 rounded-t-xl ${pct > 0 ? barColor : 'bg-slate-100 dark:bg-slate-800'} ${pct > 0 ? 'opacity-90 group-hover:opacity-100' : ''}`} />
                         </div>
-                        <span className="text-[8px] font-black text-slate-500 mt-2 uppercase">{dayLabels[i]}</span>
+                        <span className="text-[8px] font-black text-slate-500 mt-2 uppercase">{dayName}</span>
                       </div>
                     );
                   });

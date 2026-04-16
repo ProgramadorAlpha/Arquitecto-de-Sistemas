@@ -1,99 +1,50 @@
-import React, { useState } from 'react';
-import { Brain, Send, Loader2 } from 'lucide-react';
-import { doc, getDoc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { db } from '../../services/firebase';
+import React, { useState, Suspense, lazy } from 'react';
+import { Brain, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { getWeekId } from '../../utils/dateUtils';
+import { useAppContext } from '../../context/AppContext';
 import DraggableFAB from './DraggableFAB';
-import Modal from './Modal';
+
+// Code-split: LyaHub carga pesada (camera, confetti, genai) se separa del bundle principal
+const LyaHubDashboard = lazy(() => import('../LyaHub/LyaHubDashboard'));
+
+const LyaHubLoader = () => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-3xl">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-amber-500 p-[2px] animate-spin-slow shadow-[0_0_30px_rgba(99,102,241,0.5)]">
+        <div className="w-full h-full bg-slate-900 rounded-full flex items-center justify-center">
+          <Loader2 className="w-7 h-7 text-amber-400 animate-spin" />
+        </div>
+      </div>
+      <p className="text-slate-400 text-sm font-medium tracking-wider uppercase animate-pulse">Cargando Lya AI Hub...</p>
+    </div>
+  </div>
+);
 
 const BrainDumpFAB = () => {
   const { user } = useAuth();
+  const { data, actions } = useAppContext();
   const [isOpen, setIsOpen] = useState(false);
-  const [text, setText] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-    if (!text.trim() || !user || isSaving) return;
-
-    setIsSaving(true);
-    try {
-      const weekId = getWeekId(0);
-      const docRef = doc(db, 'users', user.uid, 'weekly', weekId);
-      const newEntry = {
-        date: new Date().toISOString(),
-        text: text.trim()
-      };
-
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        await updateDoc(docRef, {
-          brain_dumps: arrayUnion(newEntry)
-        });
-      } else {
-        await setDoc(docRef, {
-          brain_dumps: [newEntry]
-        });
-      }
-
-      setText('');
-      setIsOpen(false);
-    } catch (err) {
-      console.error('Error guardando Vaciado Mental:', err);
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   return (
     <>
-      <DraggableFAB 
-        onClick={() => setIsOpen(true)} 
-        tooltip="Vaciado Mental (Manten presionado para mover)"
+      <DraggableFAB
+        onClick={() => setIsOpen(true)}
+        tooltip="Lya AI Hub (Mantén presionado para mover)"
       >
         <Brain className="w-7 h-7" />
       </DraggableFAB>
 
-      <Modal 
-        isOpen={isOpen} 
-        onClose={() => setIsOpen(false)} 
-        title="🧠 Vaciado Mental"
-      >
-        <form onSubmit={handleSave} className="space-y-4">
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-            Libera tu mente. Todo lo que escribas aquí se enviará automáticamente a tu historial del Plan Semanal para clasificarlo después. No retengas la idea, libérala.
-          </p>
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Escribe tu idea, recordatorio o pensamiento aquí..."
-            className="w-full h-32 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl outline-none focus:ring-4 ring-amber-500/20 text-slate-700 dark:text-white transition-all resize-none custom-scrollbar"
-            autoFocus
+      {isOpen && (
+        <Suspense fallback={<LyaHubLoader />}>
+          <LyaHubDashboard
+            isOpen={isOpen}
+            onClose={() => setIsOpen(false)}
+            user={user}
+            actions={actions}
+            data={data}
           />
-          <div className="flex justify-end gap-3 pt-2">
-            <button 
-              type="button" 
-              onClick={() => setIsOpen(false)}
-              className="px-5 py-2.5 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold transition-colors"
-            >
-              Cancelar
-            </button>
-            <button 
-              type="submit" 
-              disabled={!text.trim() || isSaving}
-              className="px-6 py-2.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black uppercase tracking-widest text-xs flex items-center gap-2 shadow-lg shadow-amber-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-              Registrar Idea
-            </button>
-          </div>
-        </form>
-      </Modal>
+        </Suspense>
+      )}
     </>
   );
 };

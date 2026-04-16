@@ -59,6 +59,9 @@ const MonthlyTab = () => {
         });
       }
       setLoading(false);
+    }, (error) => {
+      console.error("Firestore error in MonthlyTab:", error);
+      setLoading(false);
     });
     return unsub;
   }, [user, monthId]);

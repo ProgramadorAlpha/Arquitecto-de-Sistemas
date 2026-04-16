@@ -1,74 +1,192 @@
-import { getGenerativeModel } from "firebase/ai";
-import { vertexAI } from "./firebase";
+import { GoogleGenAI, Type } from "@google/genai";
 
-// Usando Vertex AI natively through Firebase sdk (no expone api keys)
-const MANDATED_MODEL = "gemini-3.1-flash-lite-preview"; 
+// Inicializando el nuevo SDK con la API key de entorno
+const client = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+
+const MANDATED_MODEL = "gemini-3-flash-preview";
+const FALLBACK_MODEL = "gemini-3-flash-preview"; // No se permiten modelos inferiores
+
+/** Extrae texto plano de un prompt que puede ser string o array multimodal */
+const extractPromptText = (prompt) => {
+    if (typeof prompt === 'string') return prompt;
+    if (Array.isArray(prompt)) return prompt.filter(p => typeof p === 'string').join(' ');
+    return '';
+};
 
 /**
- * Función central para llamadas a la IA usando Vertex AI de Google Cloud (Firebase).
+ * Función central para llamadas a la IA usando el nuevo SDK @google/genai
+ * @param {string|Array} prompt - Texto o array multimodal (texto + inlineData)
+ * @param {string} systemInstruction - Instrucción del sistema
+ * @param {Object} options - Opciones extra: { responseMimeType?: string }
  */
-export const callGeminiAI = async (prompt, systemInstruction = "Eres un asistente experto en productividad.") => {
-    console.log(`🚀 Iniciando llamada a AI...`, { model: MANDATED_MODEL, backend: "VertexAI" });
+export const callGeminiAI = async (prompt, systemInstruction = "Eres un asistente experto en productividad.", options = {}) => {
+    console.log(`🚀 Iniciando llamada a AI...`, { model: MANDATED_MODEL, backend: "@google/genai" });
     try {
-        // BYPASS DEL LINTER: Obligamos al SDK a usar la versión de producción más reciente
-        // @ts-ignore
-        const modelOptions = { 
-            model: MANDATED_MODEL,
-            systemInstruction: systemInstruction 
-        };
-        const model = getGenerativeModel(vertexAI, modelOptions);
+        const config = { systemInstruction };
+        if (options.responseMimeType) {
+            config.responseMimeType = options.responseMimeType;
+        }
 
-        const result = await model.generateContent(prompt);
-        const finalResponse = result.response.text();
-        console.log("✅ Respuesta de la IA con " + MANDATED_MODEL + ":", finalResponse);
+        // Normalizar partes multimodales respetando el formato CamelCase estricto del SDK
+        const normalizedParts = (Array.isArray(prompt) ? prompt : [{ text: prompt }]).map(part => {
+            // Si es una cadena simple, convertir a objeto { text }
+            if (typeof part === 'string') return { text: part };
+            
+            // Si tiene inlineData (camelCase), asegurar que se mantenga así
+            if (part.inlineData) {
+                console.log(`📸 PROCESANDO MULTIMODAL: ${part.inlineData.mimeType}, Tamaño: ${Math.round(part.inlineData.data.length/1024)} KB`);
+                return {
+                    inlineData: {
+                        data: part.inlineData.data,
+                        mimeType: part.inlineData.mimeType
+                    }
+                };
+            }
+
+            // Si es un objeto de texto con una propiedad 'text'
+            if (part.text) return { text: part.text };
+            
+            return part;
+        });
+
+        const formattedContents = [{ role: 'user', parts: normalizedParts }];
+
+        const response = await client.models.generateContent({
+            model: MANDATED_MODEL,
+            contents: formattedContents,
+            config: {
+                ...config
+            }
+        });
+
+        const finalResponse = response.text;
+        if (!finalResponse) throw new Error("Respuesta vacía de la IA");
+        
+        console.log("✅ Respuesta de la IA con " + MANDATED_MODEL + ":", finalResponse.substring(0, 50) + "...");
         return finalResponse;
     } catch (error) {
-        console.warn(`Fallo en el endpoint ${MANDATED_MODEL}. Degradando a 2.5-flash...`, error);
-        
-        try {
-            // FALLBACK DE SEGURIDAD
-            // @ts-ignore
-            const fallbackModel = getGenerativeModel(vertexAI, { 
-                model: "gemini-2.5-flash",
-                systemInstruction: systemInstruction
-            });
-            const fallbackResult = await fallbackModel.generateContent(prompt);
-            const fallbackFinalResponse = fallbackResult.response.text();
-            console.log("✅ Respuesta de la IA (Fallback 2.5):", fallbackFinalResponse);
-            return fallbackFinalResponse;
-        } catch (fallbackError) {
-            console.error("❌ Error crítico en Vertex AI (Fallo total):", fallbackError);
-        
-        // Fallback para no romper la UI — indica que la IA falló
-        if (prompt.toLowerCase().includes("mantra")) {
-            return "La disciplina forja imperios.";
-        }
-        if (prompt.toLowerCase().includes("intención")) {
-            return "EJECUCIÓN MÁXIMA — CERO EXCUSAS";
-        }
-        if (prompt.toLowerCase().includes("coach experto en relaciones") || prompt.toLowerCase().includes("conexión")) {
-            return JSON.stringify({
-                consejo: "La llave de tu red falló en la capa de Google. Mientras la restauras: Escucha el doble de lo que hablas hoy.",
-                tema: "Aspiraciones personales y metas a corto plazo",
-                pregunta: "¿Qué desafío invisible estás enfrentando en este momento y cómo puedo sumar valor?"
-            });
-        }
-        throw fallbackError; // Changed throw error to fallbackError to surface the final error if it happens
-        }
+        console.warn(`Fallo en el modelo principal ${MANDATED_MODEL}. Intentando recuperación...`, error);
+        // Lanzamos el error para que el componente visual (como MantraBanner) use sus fallbacks locales
+        throw error;
     }
+};
+
+/**
+ * Función que demuestra la respuesta a funcion multimodal (Multimodal Function Calling)
+ * Basado en la nueva API de @google/genai
+ */
+export const callGeminiMultimodalFunction = async (prompt) => {
+    const getImageDeclaration = {
+      name: 'get_image',
+      description: 'Retrieves the image file reference for a specific order item.',
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          item_name: {
+            type: Type.STRING,
+            description: "The name or description of the item ordered (e.g., 'instrument').",
+          },
+        },
+        required: ['item_name'],
+      },
+    };
+
+    const toolConfig = {
+      functionDeclarations: [getImageDeclaration],
+    };
+
+    console.log(`🚀 Llamando a IA con herramientas...`);
+    const response1 = await client.models.generateContent({
+      model: MANDATED_MODEL,
+      contents: prompt,
+      config: {
+        tools: [toolConfig],
+      },
+    });
+
+    if (response1.functionCalls && response1.functionCalls.length > 0) {
+        const functionCall = response1.functionCalls[0];
+        const requestedItem = functionCall.args?.item_name || 'instrument';
+        console.log(`🤖 La IA quiere llamar a la función: ${functionCall.name} para: ${requestedItem}`);
+
+        // Simulamos la obtención de respuesta e imagen
+        const functionResponseData = {
+          image_ref: { $ref: `${requestedItem}.jpg` },
+        };
+
+        // Obtenemos una imagen genérica para el ejemplo
+        const imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png";
+        const response = await fetch(imageUrl);
+        const imageArrayBuffer = await response.arrayBuffer();
+        
+        // En el navegador necesitamos usar btoa en lugar de Buffer
+        const base64ImageData = btoa(
+            new Uint8Array(imageArrayBuffer)
+                .reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+
+        const functionResponseMultimodalData = {
+          inlineData: {
+            mimeType: 'image/png',
+            displayName: `${requestedItem}.jpg`,
+            data: base64ImageData,
+          },
+        };
+
+        const history = [
+          { role: 'user', parts: [{ text: prompt }] },
+          response1.candidates[0].content, // El modelo devuelve su llamada a Tool
+          {
+            role: 'tool',
+            parts: [
+              {
+                functionResponse: {
+                  name: functionCall.name,
+                  response: functionResponseData,
+                  parts: [functionResponseMultimodalData], // Multimodal return object
+                },
+              },
+            ],
+          },
+        ];
+
+        console.log(`🔄 Devolviendo resultado de función multimodal...`);
+        const response2 = await client.models.generateContent({
+          model: MANDATED_MODEL,
+          contents: history,
+          config: {
+            tools: [toolConfig],
+            // En versiones web, thinkingConfig podría ser opcional, pero lo conservamos si lo soporta.
+          },
+        });
+
+        console.log(`✨ Respuesta final: ${response2.text}`);
+        return response2.text;
+    }
+
+    return response1.text;
 };
 
 /**
  * Helper para parsear respuestas JSON de la IA, limpiando posibles bloques de código.
  */
 export const parseAIJSON = (text) => {
+    if (!text) return {};
     try {
-        if (!text) return {};
-        // Eliminar bloques de código markdown si existen (ignorando mayúsculas/minúsculas para "json")
-        let cleaned = text.replace(/```json|```/gi, "").trim();
-        return JSON.parse(cleaned);
+        // 1. Intentar limpiar bloques de código de Markdown
+        let cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        // 2. Buscar el primer '{' o '[' y el último '}' o ']' por si hay texto alrededor
+        const start = cleanText.search(/[\{\[]/);
+        const end = Math.max(cleanText.lastIndexOf('}'), cleanText.lastIndexOf(']'));
+        
+        if (start !== -1 && end !== -1) {
+            cleanText = cleanText.substring(start, end + 1);
+        }
+
+        return JSON.parse(cleanText);
     } catch (e) {
-        console.error("Error parseando JSON de IA:", e, "Texto original:", text);
+        console.error("❌ Error parsing AI JSON:", e, text);
         return {};
     }
 };
@@ -93,22 +211,14 @@ const LANGUAGE_FALLBACKS = {
         { word: 'Paradigma', phonetic: '/pa.ɾa.ˈðig.ma/', pronunciation: 'pa-ra-DIG-ma', translation: 'Paradigm', meaning: 'Modelo de trabajo o patrón a seguir.', example: 'Estamos ante un nuevo paradigma tecnológico.', category: 'Noun', level: 'B2' },
         { word: 'Sinergia', phonetic: '/si.ˈneɾ.xja/', pronunciation: 'si-NER-xia', translation: 'Synergy', meaning: 'Acción conjunta de varios elementos con un fin.', example: 'La sinergia del equipo fue clave.', category: 'Noun', level: 'C1' },
         { word: 'Inercia', phonetic: '/i.ˈneɾ.θja/', pronunciation: 'i-NER-cia', translation: 'Inertia', meaning: 'Resistencia al cambio o incapacidad para reaccionar.', example: 'Debemos romper la inercia corporativa.', category: 'Noun', level: 'B2' }
-    ],
-    // ... otros idiomas ...
+    ]
 };
 
 /**
  * Genera palabras/vocabulario para el módulo multi-idioma.
- * Modificado para soportar generación por lotes (Pool) y fonética nativa con SILABEO.
- * 
- * @param {string} languageId - ID del idioma (english, french, etc.)
- * @param {string} languageName - Nombre del idioma para el prompt (English, Français, etc.)
- * @param {string} level - Nivel CEFR (A1, A2, B1, B2, C1, C2)
- * @param {number} count - Número de palabras a generar (ej. 30 para el pool, 6 por defecto)
- * @param {string} userNativeLanguage - Idioma de la interfaz del usuario para adaptar la fonética y traducción (ej. "Spanish", "French")
  */
 export const generateLanguageWords = async (languageId = 'english', languageName = 'English', level = 'B2', count = 30, userNativeLanguage = 'Spanish') => {
-const prompt = `Generate a list of ${count} vocabulary words or expressions from the ${languageName} language, appropriate for CEFR level ${level}.
+    const prompt = `Generate a list of ${count} vocabulary words or expressions from the ${languageName} language, appropriate for CEFR level ${level}.
 The user's native language is ${userNativeLanguage}. All "translation" and "meaning" fields MUST be written in ${userNativeLanguage}.
 
 CRITICAL REQUIREMENTS (NO EXCEPTIONS):
@@ -153,7 +263,6 @@ Example of valid output:
 
 /**
  * @deprecated — Usar generateLanguageWords en su lugar.
- * Mantenido por compatibilidad temporal.
  */
 export const generateEnglishWords = async (count = 6) => {
     return generateLanguageWords('english', 'English', 'C1', count, 'Spanish');

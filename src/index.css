@@ -247,6 +247,99 @@ html, body, #root {
   color: var(--accent);
 }
 
+/* ─── 6b. COMPONENTE: BOTTOM TAB BAR (Mobile Native) ─────────────────────── */
+
+.bottom-tab-bar {
+  display: none; /* hidden on desktop, shown on mobile via media query */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 45;
+  height: 72px; /* Apple HIG: 49pt base + safe area */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: rgba(19, 21, 26, 0.85);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid var(--surface-border);
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-around;
+}
+
+.bottom-tab-bar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  padding: 6px 0;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+  /* Touch target: 48px minimum (Material Design) */
+  min-height: 48px;
+}
+
+.bottom-tab-bar__item:active {
+  transform: scale(0.92);
+  transition: transform 80ms ease;
+}
+
+.bottom-tab-bar__item--active {
+  color: var(--accent);
+}
+
+.bottom-tab-bar__icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.bottom-tab-bar__icon {
+  width: 22px;
+  height: 22px;
+}
+
+.bottom-tab-bar__item--active .bottom-tab-bar__icon {
+  color: var(--accent);
+}
+
+.bottom-tab-bar__dot {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.bottom-tab-bar__label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 64px;
+}
+
+.bottom-tab-bar__item--active .bottom-tab-bar__label {
+  color: var(--accent);
+}
+
 /* ─── 7. COMPONENTE: TOPBAR ──────────────────────────────────────────────── */
 
 .topbar {
@@ -408,6 +501,36 @@ html, body, #root {
 ::-webkit-scrollbar       { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--surface-border); border-radius: 99px; }
+
+/* Scrollbar Premium para modales y áreas críticas */
+.premium-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+.premium-scrollbar::-webkit-scrollbar-track {
+  background: rgba(251, 191, 36, 0.08);
+  border-radius: 10px;
+  border: 1px solid rgba(251, 191, 36, 0.1);
+}
+.premium-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, var(--accent), var(--accent-dim));
+  border-radius: 10px;
+  border: 2px solid rgba(12, 13, 16, 0.6);
+  min-height: 40px;
+}
+.premium-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+/* Always show the scrollbar */
+.premium-scrollbar {
+  overflow-y: scroll !important;
+}
+
+/* Firefox support */
+.premium-scrollbar {
+  scrollbar-width: auto;
+  scrollbar-color: var(--accent) rgba(251, 191, 36, 0.08);
+}
 /* ─── 14. ADAPTACIONES ESPECÍFICAS — ARQUITECTO DE SISTEMAS ──────────────── */
 
 /* Energy slider custom styles */
@@ -520,6 +643,11 @@ input::placeholder, textarea::placeholder {
    MÓVIL (< 768px) — FIX PRINCIPAL
    ══════════════════════════════════════════════════════════════════════ */
 @media (max-width: 767px) {
+
+  /* ─── 0. BOTTOM TAB BAR — Mostrar en móvil ─────────────────────────── */
+  .bottom-tab-bar {
+    display: flex;
+  }
 
   /* ─── 1. APP SHELL — Todo en 1 columna ─────────────────────────────── */
   .app-shell {
@@ -782,3 +910,24 @@ input::placeholder, textarea::placeholder {
     flex-shrink: 0;
   }
 }
+
+/* ─── SCROLLBAR PREMIUM (FIX VISIBILIDAD) ─── */
+.premium-scrollbar::-webkit-scrollbar {
+  width: 6px !important;
+}
+.premium-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-radius: 10px;
+}
+.premium-scrollbar::-webkit-scrollbar-thumb {
+  background: #3b82f6 !important;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.premium-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #2563eb !important;
+}
+.dark .premium-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05) !important;
+}

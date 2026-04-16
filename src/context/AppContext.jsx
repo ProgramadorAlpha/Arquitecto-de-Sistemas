@@ -30,6 +30,8 @@ export const AppProvider = ({ children }) => {
     reading: null,
     settings: {
       user_name: '',
+      nickname: '',
+      life_mission: '',
       uiLanguage: 'es'
     }
   });
@@ -60,7 +62,10 @@ export const AppProvider = ({ children }) => {
       vaciado_mental: 'VACIADO MENTAL',
       vaciado_title: 'Vaciado Mental Rápido',
       vaciado_save: 'Guardar en Mi Plan',
-      vaciado_placeholder: 'Escribe todo lo que ocupe espacio ahora mismo...'
+      vaciado_placeholder: 'Escribe todo lo que ocupe espacio ahora mismo...',
+      profile_nickname: 'Apodo / Avatar',
+      profile_mission: 'Misión de Vida',
+      profile_mission_placeholder: 'Escribe el propósito que dirige tus acciones...'
     },
     en: {
       nav_dashboard: 'Control Center',
@@ -84,7 +89,10 @@ export const AppProvider = ({ children }) => {
       vaciado_mental: 'BRAIN DUMP',
       vaciado_title: 'Quick Brain Dump',
       vaciado_save: 'Save to My Plan',
-      vaciado_placeholder: 'Write everything that is taking up space right now...'
+      vaciado_placeholder: 'Write everything that is taking up space right now...',
+      profile_nickname: 'Nickname / Avatar',
+      profile_mission: 'Life Mission',
+      profile_mission_placeholder: 'Write the purpose that drives your actions...'
     },
     pt: {
       nav_dashboard: 'Comando Central',
@@ -261,8 +269,8 @@ export const AppProvider = ({ children }) => {
     await setDoc(doc(db, 'users', user.uid, 'settings', 'config'), newSettings, { merge: true });
   }, [user, data.settings]);
 
-  const callAI = useCallback(async (prompt, system) => {
-    return callGeminiAI(prompt, system);
+  const callAI = useCallback(async (prompt, system, options) => {
+    return callGeminiAI(prompt, system, options);
   }, []);
 
   const actions = {

@@ -25,7 +25,7 @@ const ManifestoModal = ({ isOpen, onClose }) => {
             <X className="w-5 h-5" />
         </button>
 
-        <div className="px-8 py-12 md:py-16 overflow-y-auto no-scrollbar relative z-0">
+        <div className="flex-1 px-8 py-12 md:py-16 overflow-y-auto premium-scrollbar relative z-0 scroll-smooth pr-2">
             {/* Título */}
             <div className="text-center mb-12">
                 <Feather className="w-12 h-12 mx-auto text-[#8c5a2b] dark:text-[#c48e58] mb-4 opacity-80" />

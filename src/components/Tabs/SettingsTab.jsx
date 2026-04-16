@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings, Sparkles, Info, CheckCircle, Save, Globe } from 'lucide-react';
 import Card from '../UI/Card';
 import Button from '../UI/Button';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useAppContext } from '../../context/AppContext';
@@ -109,20 +109,85 @@ const SettingsTab = () => {
         </div>
       </Card>
 
-      {/* User Info */}
+      {/* Panel de Identidad y Propósito */}
       <Card title={actions.t('settings_profile')} icon={<Info className="text-blue-500" />}>
-        <div className="p-6 space-y-4">
-            <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1">Nombre para IA</label>
-                <input 
-                    type="text" 
-                    value={settings.user_name || ''}
-                    onChange={(e) => actions.updateSetting('user_name', e.target.value)}
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700 text-slate-800 dark:text-white font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Ej. Alexander"
-                />
+        <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-2 block ml-1">
+                        Nombre Real
+                    </label>
+                    <input 
+                        type="text" 
+                        value={settings.user_name || ''}
+                        onChange={(e) => actions.updateSetting('user_name', e.target.value)}
+                        className="w-full p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        placeholder="Ej. Jose García"
+                    />
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-2 block ml-1">
+                        {actions.t('profile_nickname')}
+                    </label>
+                    <input 
+                        type="text" 
+                        value={settings.nickname || ''}
+                        onChange={(e) => actions.updateSetting('nickname', e.target.value)}
+                        className="w-full p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        placeholder="Ej. Archi"
+                    />
+                </div>
             </div>
-            <Button className="w-full py-4 gap-2">
+
+            <div>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-2 block ml-1">
+                    {actions.t('profile_mission')}
+                </label>
+                <textarea 
+                    value={settings.life_mission || ''}
+                    onChange={(e) => actions.updateSetting('life_mission', e.target.value)}
+                    className="w-full p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white font-medium text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all min-h-[100px] resize-none"
+                    placeholder={actions.t('profile_mission_placeholder')}
+                />
+                <p className="text-[9px] text-slate-500 mt-2 font-medium italic">
+                    * Tu misión de vida ayuda a Gemini 3 a alinear tus mantras y consejos con tu propósito central.
+                </p>
+            </div>
+
+            <Button 
+                onClick={async () => {
+                    const saveBtn = document.activeElement;
+                    if (!saveBtn || !settings.userId) return;
+                    
+                    const originalContent = saveBtn.innerHTML;
+                    saveBtn.innerHTML = '<span class="animate-pulse">Guardando...</span>';
+                    saveBtn.classList.add('opacity-80');
+                    
+                    try {
+                        // Guardado real en Firestore
+                        await setDoc(doc(db, 'users', settings.userId), settings, { merge: true });
+                        
+                        saveBtn.innerHTML = '✅ ¡Guardado con éxito!';
+                        saveBtn.classList.replace('bg-blue-600', 'bg-emerald-600');
+                        
+                        setTimeout(() => {
+                            saveBtn.innerHTML = originalContent;
+                            saveBtn.classList.replace('bg-emerald-600', 'bg-blue-600');
+                            saveBtn.classList.remove('opacity-80');
+                        }, 2000);
+                    } catch (error) {
+                        console.error("Error saving profile:", error);
+                        saveBtn.innerHTML = '❌ Error al guardar';
+                        saveBtn.classList.replace('bg-blue-600', 'bg-rose-600');
+                        setTimeout(() => {
+                            saveBtn.innerHTML = originalContent;
+                            saveBtn.classList.replace('bg-rose-600', 'bg-blue-600');
+                            saveBtn.classList.remove('opacity-80');
+                        }, 2000);
+                    }
+                }}
+                className="w-full py-4 gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/10 transition-all duration-300"
+            >
                 <Save className="w-5 h-5" /> {actions.t('settings_save_changes')}
             </Button>
         </div>

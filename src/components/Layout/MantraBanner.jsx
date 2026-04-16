@@ -23,8 +23,12 @@ export const PERSONALITIES = [
     lineColor: 'from-transparent via-red-500/60 to-transparent',
     backdropColor: 'rgba(0,0,0,0.35)',
     description: 'Mantras de combate y disciplina extrema. Para quienes se forjan en el fuego.',
-    prompt: (today) =>
-      `Genera un mantra estoico, brutalmente honesto y poderoso para un arquitecto de sistemas de alto rendimiento para el día de hoy (${today}). Máximo 15 palabras. Que inspire disciplina férrea y foco láser. Devuelve SOLO el texto, sin comillas.`,
+    prompt: (today, userName, lifeMission) =>
+      `Genera un mantra estoico, brutalmente honesto y poderoso para el usuario ${userName || 'Arquitecto'}. 
+      Contexto de vida: ${lifeMission || 'Alto rendimiento y disciplina'}. 
+      Día: ${today}. Máximo 20 palabras. 
+      Instrucción crucial: Dirígete a ${userName || 'él/ella'} o incluye su nombre de forma orgánica en el mantra. 
+      Que inspire disciplina férrea. Devuelve SOLO el texto.`,
     system: 'Eres una IA de mentalidad de acero diseñada para forjar la disciplina de un guerrero moderno.',
     fallbacks: [
       'La disciplina forja imperios. Ejecuta sin piedad.',
@@ -49,8 +53,12 @@ export const PERSONALITIES = [
     lineColor: 'from-transparent via-blue-500/60 to-transparent',
     backdropColor: 'rgba(0,0,0,0.35)',
     description: 'Perspectiva elevada, pensamiento estratégico y metas que trascienden.',
-    prompt: (today) =>
-      `Genera un mantra inspirador y visionario para un líder estratégico con metas a largo plazo (hoy: ${today}). Máximo 15 palabras. Que inspire pensamiento en grande y claridad estratégica. Sin comillas, solo el texto.`,
+    prompt: (today, userName, lifeMission) =>
+      `Genera un mantra inspirador y visionario para ${userName || 'el líder'}. 
+      Misión de vida: ${lifeMission || 'Impacto a largo plazo'}. 
+      Hoy es ${today}. Máximo 20 palabras. 
+      Incluye el nombre ${userName || ''} para darle poder al mensaje. 
+      Que inspire pensamiento en grande. Sin comillas.`,
     system: 'Eres un coach visionario que inspira líderes a pensar con perspectiva de 10 años.',
     fallbacks: [
       'El futuro pertenece a quienes lo diseñan hoy.',
@@ -75,8 +83,12 @@ export const PERSONALITIES = [
     lineColor: 'from-transparent via-emerald-500/60 to-transparent',
     backdropColor: 'rgba(0,0,0,0.35)',
     description: 'Filosofía estoica, mindfulness y equilibrio para mentes en paz.',
-    prompt: (today) =>
-      `Genera un mantra filosófico, sereno y sabio inspirado en el estoicismo y el mindfulness (hoy: ${today}). Máximo 15 palabras. Que inspire ecuanimidad, presencia y sabiduría. Sin comillas, solo el texto.`,
+    prompt: (today, userName, lifeMission) =>
+      `Genera un mantra filosófico y sabio para ${userName || 'un buscador de verdad'}. 
+      Propósito: ${lifeMission || 'Paz y sabiduría'}. 
+      Hoy: ${today}. Máximo 20 palabras. 
+      Usa el nombre ${userName || ''} de forma sabia en la frase. 
+      Que inspire ecuanimidad y presencia. Sin comillas.`,
     system: 'Eres un filósofo estoico moderno que combina sabiduría antigua con claridad contemporánea.',
     fallbacks: [
       'La paz interior es el origen de toda grandeza exterior.',
@@ -101,8 +113,12 @@ export const PERSONALITIES = [
     lineColor: 'from-transparent via-purple-500/60 to-transparent',
     backdropColor: 'rgba(0,0,0,0.35)',
     description: 'Creatividad, expresión auténtica e innovación sin límites.',
-    prompt: (today) =>
-      `Genera un mantra creativo, inspirado e innovador para alguien que crea con pasión (hoy: ${today}). Máximo 15 palabras. Que inspire innovación, expresión auténtica y pensamiento diferente. Sin comillas, solo el texto.`,
+    prompt: (today, userName, lifeMission) =>
+      `Genera un mantra creativo e innovador para ${userName || 'el creador'}. 
+      Misión: ${lifeMission || 'Innovación'}. 
+      Hoy: ${today}. Máximo 20 palabras. 
+      Personaliza el mensaje para ${userName || 'el usuario'}. 
+      Que inspire expresión auténtica. Solo el texto.`,
     system: 'Eres un coach creativo que inspira a artistas, diseñadores e innovadores a romper paradigmas.',
     fallbacks: [
       'Crea con valentía. El mundo necesita tu visión única.',
@@ -127,8 +143,12 @@ export const PERSONALITIES = [
     lineColor: 'from-transparent via-amber-500/60 to-transparent',
     backdropColor: 'rgba(0,0,0,0.35)',
     description: 'Orientado a resultados, celebra victorias y mantiene el momentum ganador.',
-    prompt: (today) =>
-      `Genera un mantra energético y orientado a logros para alguien que celebra victorias (hoy: ${today}). Máximo 15 palabras. Que inspire momentum, celebración de logros y mentalidad ganadora. Sin comillas, solo el texto.`,
+    prompt: (today, userName, lifeMission) =>
+      `Genera un mantra energético para ${userName || 'el triunfador'}. 
+      Misión de éxito: ${lifeMission || 'Ganar y crecer'}. 
+      Hoy: ${today}. Máximo 20 palabras. 
+      Incluye a ${userName || 'él/ella'} en la celebración del mensaje. 
+      Que inspire momentum. Sin comillas.`,
     system: 'Eres un coach de alto rendimiento que celebra victorias y mantiene vivo el momentum ganador.',
     fallbacks: [
       'Cada pequeña victoria construye el camino al gran triunfo.',
@@ -153,8 +173,12 @@ export const PERSONALITIES = [
     lineColor: 'from-transparent via-cyan-500/60 to-transparent',
     backdropColor: 'rgba(0,0,0,0.35)',
     description: 'Liderazgo, empatía, relaciones auténticas y impacto colectivo.',
-    prompt: (today) =>
-      `Genera un mantra sobre liderazgo, conexión humana e impacto colectivo (hoy: ${today}). Máximo 15 palabras. Que inspire liderazgo empático, colaboración y servicio genuino. Sin comillas, solo el texto.`,
+    prompt: (today, userName, lifeMission) =>
+      `Genera un mantra de liderazgo humano para ${userName || 'el conector'}. 
+      Misión colectiva: ${lifeMission || 'Servir y elevar'}. 
+      Hoy: ${today}. Máximo 20 palabras. 
+      Dirígete a ${userName || 'él/ella'} como líder. 
+      Que inspire liderazgo empático. Solo el texto.`,
     system: 'Eres un coach de liderazgo humano que inspira a conectar con autenticidad y generar impacto colectivo.',
     fallbacks: [
       'Liderar es servir. Tu impacto vive en quienes elevas.',
@@ -171,12 +195,29 @@ export const PERSONALITIES = [
 const CACHE_KEY = 'warrior_mantra_v2';
 const PERSONALITY_KEY = 'mantra_personality';
 const ONBOARDED_KEY = 'mantra_onboarded';
+const ROTATION_OVERRIDE_KEY = 'mantra_rotation_override';
+
+/** Rotación diaria automática: cada día del semana → un arquetipo diferente */
+const getDailyPersonality = () => {
+  const dayIndex = new Date().getDay(); // 0=dom, 1=lun, ... 6=sáb
+  return PERSONALITIES[dayIndex % PERSONALITIES.length];
+};
 
 const getPersonality = () => {
   try {
-    const saved = localStorage.getItem(PERSONALITY_KEY);
-    return PERSONALITIES.find(p => p.id === saved) || PERSONALITIES[0];
-  } catch { return PERSONALITIES[0]; }
+    // Si el usuario eligió manualmente un arquetipo hoy, respetar esa elección
+    const override = localStorage.getItem(ROTATION_OVERRIDE_KEY);
+    if (override) {
+      const { date, personalityId } = JSON.parse(override);
+      const today = new Date().toISOString().split('T')[0];
+      if (date === today) {
+        return PERSONALITIES.find(p => p.id === personalityId) || getDailyPersonality();
+      }
+      // Override expiró (cambió el día) → borrar y usar rotación
+      localStorage.removeItem(ROTATION_OVERRIDE_KEY);
+    }
+    return getDailyPersonality();
+  } catch { return getDailyPersonality(); }
 };
 
 const loadCachedMantra = (today, personalityId) => {
@@ -184,8 +225,13 @@ const loadCachedMantra = (today, personalityId) => {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const cached = JSON.parse(raw);
+    // Caché válido solo si: mismo día Y misma personalidad
     if (cached.date === today && cached.personalityId === personalityId && cached.mantra)
       return cached.mantra;
+    // Día nuevo o personalidad cambió → invalidar caché viejo
+    if (cached.date !== today) {
+      localStorage.removeItem(CACHE_KEY);
+    }
   } catch {}
   return null;
 };
@@ -300,7 +346,8 @@ const PersonalityModal = ({ currentId, onSelect, onClose }) => {
 ══════════════════════════════════════════════════════ */
 const MantraBanner = () => {
   const { user } = useAuth();
-  const { actions } = useAppContext();
+  const { actions, settings } = useAppContext();
+  const { nickname, lifeMission } = settings?.config || {};
   const today = new Date().toISOString().split('T')[0];
 
   const [personality, setPersonality] = useState(getPersonality);
@@ -323,7 +370,7 @@ const MantraBanner = () => {
     setLoading(true);
     try {
       const res = await actions.callAI(
-        p.prompt(today) + ` Variación: ${Math.random().toFixed(6)}`,
+        p.prompt(today, nickname, lifeMission) + ` Variación: ${Math.random().toFixed(6)}`,
         p.system
       );
       if (res && res.trim()) {
@@ -334,6 +381,7 @@ const MantraBanner = () => {
       }
     } catch (e) {
       console.error('Mantra AI error:', e);
+      setMantra(p.fallbacks[Math.floor(Math.random() * p.fallbacks.length)]);
     } finally {
       setLoading(false);
       generatingRef.current = false;
@@ -349,26 +397,34 @@ const MantraBanner = () => {
 
   // Al cambiar personalidad
   const handleSelectPersonality = (p) => {
+    console.log("🎭 Cambiando arquetipo a:", p.name);
     try {
       localStorage.setItem(PERSONALITY_KEY, p.id);
       localStorage.setItem(ONBOARDED_KEY, '1');
+      localStorage.setItem(ROTATION_OVERRIDE_KEY, JSON.stringify({
+        date: new Date().toISOString().split('T')[0],
+        personalityId: p.id
+      }));
+      // Limpiamos el caché específico para forzar novedad al cambiar manualmente
+      localStorage.removeItem(CACHE_KEY); 
     } catch {}
+    
     setPersonality(p);
     setShowBadge(false);
     setShowModal(false);
     setIsAI(false);
-    const cached = loadCachedMantra(today, p.id);
-    if (cached) {
-      setMantra(cached);
-      setIsAI(true);
-    } else {
-      setMantra(p.fallbacks[Math.floor(Math.random() * p.fallbacks.length)]);
-      generateAI(p);
-    }
+    
+    // Forzamos un fallback inmediato diferente según el arquetipo
+    const newFallback = p.fallbacks[Math.floor(Math.random() * p.fallbacks.length)];
+    setMantra(newFallback);
+    
+    // Disparamos la IA para que lo personalice de inmediato
+    generateAI(p);
   };
 
-  // Refrescar mantra
+  // Refrescar mantra manualmente
   const handleRefresh = () => {
+    console.log("🔄 Refrescando mantra manualmente...");
     try { localStorage.removeItem(CACHE_KEY); } catch {}
     setIsAI(false);
     setMantra(personality.fallbacks[Math.floor(Math.random() * personality.fallbacks.length)]);

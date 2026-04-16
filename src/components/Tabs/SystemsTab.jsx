@@ -109,6 +109,9 @@ const SystemsTab = () => {
       const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       setSystems(docs);
       setLoading(false);
+    }, (error) => {
+      console.error("Firestore error in SystemsTab:", error);
+      setLoading(false);
     });
     return unsub;
   }, [user]);

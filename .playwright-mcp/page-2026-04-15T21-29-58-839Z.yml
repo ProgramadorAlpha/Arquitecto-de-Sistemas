@@ -1,0 +1,24 @@
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - img [ref=e7]
+    - heading "Arquitecto" [level=2] [ref=e9]
+    - generic [ref=e10]: De Sistemas
+  - generic [ref=e11]:
+    - button "Ingresar" [ref=e12] [cursor=pointer]
+    - button "Registro" [ref=e13] [cursor=pointer]
+  - generic [ref=e14]:
+    - generic [ref=e15]:
+      - generic [ref=e16]: Email
+      - textbox "tu@email.com" [ref=e17]
+    - generic [ref=e18]:
+      - generic [ref=e19]: Contraseña
+      - generic [ref=e20]:
+        - textbox "••••••••" [ref=e21]
+        - button "Mostrar" [ref=e22] [cursor=pointer]:
+          - img [ref=e23]
+    - button "Iniciar Misión" [ref=e26] [cursor=pointer]
+  - generic [ref=e31]: O continúa con
+  - button "Google Google" [ref=e32] [cursor=pointer]:
+    - img "Google" [ref=e33]
+    - text: Google
+  - button "¿Olvidaste tu contraseña?" [ref=e35] [cursor=pointer]
