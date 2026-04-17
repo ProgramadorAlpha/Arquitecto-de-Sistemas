@@ -98,7 +98,7 @@ const CircularProgress = ({ percentage, size = 120, strokeWidth = 10 }) => {
         </defs>
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-        <span className="text-3xl font-black text-white tabular-nums">{Math.round(animatedPercentage)}%</span>
+        <span className="text-3xl font-black text-slate-900 dark:text-white tabular-nums">{Math.round(animatedPercentage)}%</span>
         <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Progreso</span>
       </div>
     </div>

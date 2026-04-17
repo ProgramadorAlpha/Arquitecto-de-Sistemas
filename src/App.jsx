@@ -37,7 +37,17 @@ const App = () => {
   // Fecha formateada
   const todayLabel = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
     .replace(/^\w/, c => c.toUpperCase());
-  const firstName = (user?.displayName || user?.email || 'Arquitecto').split(/[ @]/)[0];
+  const getDisplayName = () => {
+    const rawName = data?.settings?.user_name || data?.settings?.nickname || user?.displayName;
+    if (rawName) {
+      const p = rawName.trim().split(/\s+/);
+      if (p.length === 1) return p[0];
+      if (p.length === 2) return `${p[0]} ${p[1][0].toUpperCase()}.`;
+      if (p.length >= 3) return `${p[0]} ${p[1][0].toUpperCase()}. ${p[2][0].toUpperCase()}.`;
+    }
+    return user?.email ? user.email.split('@')[0] : 'Arquitecto';
+  };
+  const firstName = getDisplayName();
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches';
 
@@ -97,16 +107,16 @@ const App = () => {
       <div className="flex-1 flex flex-col min-w-0 relative h-screen">
         {/* Header Bar */}
         <header className="h-16 md:h-20 flex items-center justify-between px-4 md:px-10 border-b border-white/5 bg-slate-900/40 backdrop-blur-md z-30 sticky top-0 shrink-0">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Hamburger móvil */}
             <button
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden p-2.5 rounded-2xl bg-slate-800 text-slate-400 hover:text-white transition-all shadow-inner"
+              className="md:hidden shrink-0 p-2.5 rounded-2xl bg-slate-800 text-slate-400 hover:text-white transition-all shadow-inner"
             >
               <Menu size={20} strokeWidth={2.5} />
             </button>
             {/* Saludo personalizado */}
-            <div className="min-w-0 flex-1 max-w-[260px] sm:max-w-sm md:max-w-none">
+            <div className="min-w-0 flex-1">
               <h2 className="text-white font-black text-sm md:text-base leading-tight text-ellipsis overflow-hidden whitespace-nowrap">
                 {greeting}, {firstName} <span className="inline-block animate-[wave_1.5s_ease_1]" style={{display:'inline-block'}}>👋</span>
               </h2>
@@ -114,7 +124,7 @@ const App = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-2 md:gap-3 shrink-0">
             {/* Theme Toggle */}
             <button
               onClick={actions.toggleTheme}
@@ -172,7 +182,7 @@ const App = () => {
         <NotificationPanel isOpen={notifOpen} onClose={() => setNotifOpen(false)} onNavigate={(tab) => { setActiveTab(tab); setNotifOpen(false); }} />
 
         {/* Scrollable Container */}
-        <main className="flex-1 overflow-y-auto bg-[#0a0f1e] p-4 md:p-10 custom-scrollbar pb-24 md:pb-10">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-[#0a0f1e] p-4 md:p-10 custom-scrollbar pb-24 md:pb-10">
           <ErrorBoundary key={activeTab}>
             <div className="max-w-7xl mx-auto space-y-6 md:space-y-10">
               <MantraBanner />

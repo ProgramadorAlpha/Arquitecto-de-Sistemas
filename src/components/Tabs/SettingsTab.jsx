@@ -44,11 +44,11 @@ const SettingsTab = () => {
     <div className="max-w-2xl mx-auto space-y-6 px-4">
       {/* Header */}
       <div className="text-center mb-12 py-8">
-        <div className="bg-slate-100 dark:bg-slate-800 w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-slate-200 dark:shadow-none">
+        <div className="bg-slate-100 dark:bg-slate-800 w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-md shadow-slate-300/40 dark:shadow-none">
           <Settings className="w-10 h-10 text-slate-600 dark:text-slate-400" />
         </div>
-        <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">{actions.t('settings_title')}</h2>
-        <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">{actions.t('settings_subtitle')}</p>
+        <h2 className="text-3xl font-black text-slate-200 dark:text-white uppercase tracking-tighter">{actions.t('settings_title')}</h2>
+        <p className="text-slate-400 dark:text-slate-400 mt-2 font-medium">{actions.t('settings_subtitle')}</p>
       </div>
 
       {/* AI Section (Auto-configured with Vertex AI) */}
